@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>STAVANÍ NA SKALE – interaktívny pracovný list pre snúbencov</title>
+<style>
+:root{
+  --navy:#243b53;--blue:#3b7080;--gold:#b08d57;--ink:#1f2933;--muted:#637381;
+  --line:#d7e1e8;--soft:#f6f9fb;--blue-soft:#eaf2f5;--warn:#8a5a12;--warn-soft:#fff7e6;
+  --good:#2f6b55;--good-soft:#edf7f2;--bad:#8a3f3f;--bad-soft:#fff0f0;--white:#fff;
+  --shadow:0 8px 30px rgba(36,59,83,.08);--radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#eef3f6;color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+.shell{max-width:1160px;margin:0 auto;padding:24px}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.brand-mark{width:48px;height:48px;border-radius:14px;background:var(--navy);display:grid;place-items:center;color:white;font-weight:800;font-size:20px;box-shadow:var(--shadow)}
+.brand small{display:block;color:var(--gold);font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.brand strong{font-size:1.15rem;color:var(--navy)}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero{padding:30px}
+.hero h1{margin:0 0 8px;color:var(--navy);font-size:clamp(1.75rem,3vw,2.6rem);line-height:1.1}
+.hero .lead{font-size:1.05rem;color:var(--muted);max-width:820px}
+.quote{margin:22px 0;padding:16px 18px;border-left:4px solid var(--gold);background:#fbf8f2;border-radius:0 12px 12px 0;color:var(--navy);font-style:italic}
+.notice{padding:14px 16px;border-radius:12px;background:var(--blue-soft);border:1px solid #d6e7ec;margin:16px 0;color:#294957}
+.privacy{display:flex;gap:10px;align-items:flex-start;background:var(--good-soft);border:1px solid #d8ece3;padding:13px 15px;border-radius:12px;color:#285744}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field label{font-weight:700;color:var(--navy)}
+.field input,.field select,.field textarea{width:100%;border:1px solid #bdcbd4;border-radius:10px;padding:11px 12px;background:white;color:var(--ink);outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,112,128,.13)}
+.field textarea{min-height:110px;resize:vertical}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
+.btn{border:0;border-radius:10px;padding:11px 16px;font-weight:800;transition:.15s ease}
+.btn-primary{background:var(--navy);color:white}.btn-primary:hover{background:#1c3045}
+.btn-secondary{background:var(--blue-soft);color:var(--navy);border:1px solid #cfe0e5}
+.btn-ghost{background:white;color:var(--navy);border:1px solid var(--line)}
+.btn-danger{background:#fff1f1;color:#8a3434;border:1px solid #f0cccc}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.hidden{display:none!important}
+.app-layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.sidebar{position:sticky;top:16px;padding:14px}
+.sidebar .who{padding:12px;border-radius:12px;background:var(--navy);color:white;margin-bottom:12px}
+.sidebar .who small{opacity:.8;display:block}
+.section-nav{display:flex;flex-direction:column;gap:5px}
+.navbtn{border:0;background:transparent;text-align:left;padding:9px 10px;border-radius:9px;color:var(--muted);font-size:.91rem}
+.navbtn:hover{background:var(--soft)}
+.navbtn.active{background:var(--blue-soft);color:var(--navy);font-weight:800}
+.navbtn.done:after{content:" ✓";color:var(--good);font-weight:900}
+.progress-wrap{margin:12px 0 4px}
+.progress{height:8px;background:#e7edf1;border-radius:999px;overflow:hidden}
+.progress span{display:block;height:100%;background:var(--blue);width:0;transition:.25s}
+.progress-text{font-size:.78rem;color:var(--muted);margin-top:5px}
+.content{padding:26px;min-width:0}
+.section-kicker{color:var(--gold);font-weight:900;letter-spacing:.08em;text-transform:uppercase;font-size:.78rem}
+.content h2{margin:4px 0 6px;color:var(--navy);font-size:1.75rem;line-height:1.15}
+.section-desc{color:var(--muted);margin:0 0 22px;max-width:850px}
+.block{margin:22px 0 30px}
+.block h3{margin:0 0 10px;color:var(--blue);font-size:1.1rem}
+.question{border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0;background:white}
+.question.flagged{border-color:#e8c887;background:#fffbf2}
+.qtop{display:flex;gap:12px;justify-content:space-between;align-items:flex-start}
+.qtext{font-weight:700;color:var(--navy);min-width:0}
+.hint{display:block;margin-top:4px;color:var(--muted);font-size:.88rem;font-weight:400}
+.flag{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);white-space:nowrap}
+.flag input{accent-color:var(--gold)}
+.choice-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.choice{position:relative}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice span{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 12px;border:1px solid #c8d5dc;border-radius:10px;background:var(--soft);color:#405463;font-weight:700;min-width:64px}
+.choice input:checked+span{background:var(--navy);border-color:var(--navy);color:white;box-shadow:0 0 0 2px rgba(36,59,83,.09)}
+.open-answer{margin-top:12px;width:100%;min-height:105px;border:1px solid #c8d5dc;border-radius:10px;padding:11px 12px;resize:vertical;outline:none}
+.open-answer:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,112,128,.12)}
+.section-actions{display:flex;gap:10px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:18px;margin-top:26px}
+.section-actions .right{display:flex;gap:10px;flex-wrap:wrap}
+.handoff{text-align:center;padding:36px}
+.handoff .lock{font-size:52px;margin-bottom:8px}
+.handoff h2{color:var(--navy);font-size:2rem;margin:0 0 10px}
+.handoff p{color:var(--muted);max-width:650px;margin:0 auto 18px}
+.results{padding:26px}
+.results-head{display:flex;gap:16px;justify-content:space-between;align-items:flex-start;flex-wrap:wrap}
+.results h2{margin:3px 0;color:var(--navy);font-size:2rem}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:20px 0}
+.stat{padding:15px;border:1px solid var(--line);border-radius:13px;background:var(--soft)}
+.stat strong{display:block;font-size:1.7rem;color:var(--navy)}
+.stat span{font-size:.82rem;color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.filter-btn{border:1px solid var(--line);background:white;border-radius:999px;padding:8px 12px;font-weight:700;color:var(--muted)}
+.filter-btn.active{background:var(--navy);border-color:var(--navy);color:white}
+.result-section{margin:26px 0}
+.result-section h3{color:var(--blue);margin-bottom:10px}
+.result-item{border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0;background:white}
+.result-item.good{border-left:5px solid var(--good)}
+.result-item.diff{border-left:5px solid var(--warn)}
+.result-item.talk{box-shadow:inset 0 0 0 1px #ead19e}
+.result-title{font-weight:800;color:var(--navy)}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.answer-box{background:var(--soft);border-radius:10px;padding:10px;min-width:0;overflow-wrap:anywhere}
+.answer-box strong{display:block;font-size:.8rem;color:var(--muted);margin-bottom:3px}
+.status{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:999px;font-size:.76rem;font-weight:800;margin-top:8px}
+.status.good{background:var(--good-soft);color:var(--good)}
+.status.diff{background:var(--warn-soft);color:var(--warn)}
+.status.talk{background:#fff0e5;color:#8a4a12}
+.followup{margin-top:10px;padding:10px 12px;background:#fbf8f2;border-radius:10px;color:#614c31;font-size:.9rem}
+.agreement{margin-top:10px}
+.agreement label{font-weight:800;color:var(--navy);font-size:.9rem}
+.agreement textarea{width:100%;min-height:72px;margin-top:5px;border:1px solid #c8d5dc;border-radius:10px;padding:9px;resize:vertical}
+.joint{margin-top:30px;border-top:2px solid var(--line);padding-top:24px}
+.joint .question{background:#fcfdfd}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.data-note{font-size:.82rem;color:var(--muted);margin-top:10px}
+.empty{padding:24px;border:1px dashed #bccbd4;border-radius:14px;color:var(--muted);text-align:center}
+.modal{position:fixed;inset:0;background:rgba(23,35,45,.55);display:grid;place-items:center;padding:20px;z-index:50}
+.modal-card{max-width:520px;width:100%;background:white;border-radius:18px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-card h3{margin-top:0;color:var(--navy)}
+.print-only{display:none}
+@media(max-width:800px){
+ .shell{padding:12px}.app-layout{grid-template-columns:1fr}.sidebar{position:static}.section-nav{display:grid;grid-template-columns:repeat(3,1fr)}
+ .navbtn{text-align:center;font-size:.8rem}.content,.results,.hero{padding:18px}.grid2,.result-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.qtop{flex-direction:column}.flag{white-space:normal}
+}
+@media(max-width:460px){.section-nav{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:1fr}.choice{flex:1 1 44%}.choice span{width:100%}}
+@media print{
+ @page{size:A4;margin:13mm 12mm}
+ body{background:white;font-size:10.5pt;color:#111}
+ .no-print,#setupScreen,#appScreen,#handoffScreen,#resultsScreen{display:none!important}
+ .print-only{display:block!important}
+ .shell{max-width:none;padding:0;margin:0}
+ .print-report h1{color:#243b53;font-size:22pt;margin:0 0 4mm}
+ .print-report h2{color:#3b7080;font-size:15pt;border-bottom:1px solid #d7e1e8;padding-bottom:2mm;margin-top:7mm}
+ .print-report h3{color:#243b53;font-size:11.5pt;margin-top:5mm}
+ .print-report .pmeta{color:#637381;margin-bottom:5mm}
+ .print-report table{width:100%;border-collapse:collapse;margin:3mm 0 5mm;break-inside:auto}
+ .print-report th,.print-report td{border:1px solid #cfd9df;padding:2.2mm;vertical-align:top;text-align:left}
+ .print-report th{background:#eef3f6;color:#243b53}
+ .print-report tr{break-inside:avoid}
+ .print-report .print-topic{break-inside:avoid;border:1px solid #d7e1e8;border-left:3px solid #b08d57;padding:3mm;margin:3mm 0}
+ .print-report .agreement-print{background:#f7fafc;padding:2.5mm;margin-top:2mm}
+ .print-report .muted{color:#637381}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="brand no-print"><div class="brand-mark">S</div><div><small>Stavaní na skale</small><strong>Interaktívny pracovný list pre snúbencov</strong></div></div>
+
+  <section id="setupScreen" class="card hero">
+    <div class="section-kicker">Roly • očakávania • spoločný život</div>
+    <h1>Dva pohľady. Jeden rozhovor.</h1>
+    <p class="lead">Najprv odpovie každý samostatne. Odpovede prvého sa potom skryjú, druhý vyplní tú istú časť a až nakoniec sa zobrazí spoločné porovnanie, témy na rozhovor a priestor pre vaše dohody.</p>
+    <div class="quote">„Preto muž opustí svojho otca i svoju matku a pripúta sa k svojej manželke a budú jedno telo.“ <strong>Genesis 2:24</strong></div>
+    <div class="privacy"><span>🔒</span><div><strong>Súkromie:</strong> stránka neposiela odpovede na internet. Údaje sa ukladajú iba v tomto prehliadači na tomto zariadení, aby sa pri zatvorení stránky nestratili. Kedykoľvek ich môžete vymazať.</div></div>
+    <div class="notice"><strong>Nie je to test kompatibility.</strong> Neexistuje „správne skóre“. Rozdielne odpovede sú pozvánkou pomenovať očakávania skôr, než sa z nich stanú nevyslovené konflikty.</div>
+    <div class="grid2">
+      <div class="field"><label for="nameA">Meno snúbenca / Partner A</label><input id="nameA" autocomplete="name" placeholder="Napr. Peter"></div>
+      <div class="field"><label for="nameB">Meno snúbenice / Partner B</label><input id="nameB" autocomplete="name" placeholder="Napr. Jana"></div>
+      <div class="field"><label for="dateField">Dátum vyplnenia</label><input id="dateField" type="date"></div>
+      <div class="field"><label for="coupleNote">Poznámka (voliteľné)</label><input id="coupleNote" placeholder="Napr. 6 mesiacov do svadby"></div>
+    </div>
+    <div class="actions">
+      <button id="startBtn" class="btn btn-primary">Začať – prvý partner</button>
+      <button id="resumeBtn" class="btn btn-secondary hidden">Pokračovať v rozpracovanom vyplňovaní</button>
+      <button id="importBtnSetup" class="btn btn-ghost">Načítať zálohu</button>
+      <input id="importFile" type="file" accept="application/json,.json" class="hidden">
+    </div>
+  </section>
+
+  <section id="appScreen" class="hidden no-print">
+    <div class="app-layout">
+      <aside class="card sidebar">
+        <div class="who"><small>Práve vypĺňa</small><strong id="whoName">Partner</strong></div>
+        <div class="progress-wrap"><div class="progress"><span id="progressBar"></span></div><div id="progressText" class="progress-text">0 % vyplnené</div></div>
+        <nav id="sectionNav" class="section-nav" aria-label="Časti pracovného listu"></nav>
+        <div class="actions" style="margin-top:14px">
+          <button id="saveBackupBtn" class="btn btn-ghost" style="width:100%">Uložiť zálohu</button>
+          <button id="backToStartBtn" class="btn btn-ghost" style="width:100%">Úvod</button>
+        </div>
+      </aside>
+      <main class="card content">
+        <div class="section-kicker" id="sectionKicker">Časť</div>
+        <h2 id="sectionTitle"></h2>
+        <p id="sectionDesc" class="section-desc"></p>
+        <div id="sectionContent"></div>
+        <div class="section-actions">
+          <button id="prevSectionBtn" class="btn btn-ghost">← Predchádzajúca</button>
+          <div class="right">
+            <button id="nextSectionBtn" class="btn btn-secondary">Ďalšia časť →</button>
+            <button id="finishPartnerBtn" class="btn btn-primary hidden">Dokončiť túto časť</button>
+          </div>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <section id="handoffScreen" class="card handoff hidden no-print">
+    <div class="lock">🔐</div>
+    <div class="section-kicker">Odpovede prvého partnera sú skryté</div>
+    <h2>Odovzdajte zariadenie druhému partnerovi</h2>
+    <p id="handoffText">Teraz bude rovnaký pracovný list vypĺňať druhý partner bez toho, aby videl predchádzajúce odpovede. Porovnanie sa zobrazí až po dokončení oboch častí.</p>
+    <button id="startSecondBtn" class="btn btn-primary">Som druhý partner – začať</button>
+  </section>
+
+  <section id="resultsScreen" class="card results hidden no-print">
+    <div class="results-head">
+      <div><div class="section-kicker">Spoločné výsledky</div><h2 id="resultsTitle">Vaše rozhovory</h2><p class="section-desc">Rozdiel nie je automaticky problém. Je to miesto, kde sa oplatí pomenovať očakávania a vytvoriť konkrétnu dohodu.</p></div>
+      <div class="toolbar">
+        <button id="backupResultsBtn" class="btn btn-ghost">Záloha</button>
+        <button id="printBtn" class="btn btn-primary">Tlačiť / uložiť PDF</button>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="filters" id="filters">
+      <button class="filter-btn active" data-filter="discussion">Na rozhovor</button>
+      <button class="filter-btn" data-filter="differences">Rozdiely</button>
+      <button class="filter-btn" data-filter="matches">Zhody</button>
+      <button class="filter-btn" data-filter="open">Otvorené odpovede</button>
+      <button class="filter-btn" data-filter="all">Všetko</button>
+    </div>
+    <div id="resultsList"></div>
+    <div class="joint">
+      <div class="section-kicker">Spoločná časť</div>
+      <h2 style="font-size:1.65rem">Naše najdôležitejšie dohody</h2>
+      <p class="section-desc">Túto časť vyplňte už spolu. Nezapisujte ideály; zapíšte to, čo ste si naozaj dohodli.</p>
+      <div id="jointQuestions"></div>
+      <h3 style="color:var(--blue);margin-top:26px">Päť tém, ktoré nechceme nechať nevyslovené</h3>
+      <div id="fiveTopics"></div>
+      <div class="question" style="margin-top:20px"><div class="qtext">Náš prvý „check-in“ po svadbe</div><div class="grid2" style="margin-top:10px"><div class="field"><label>Dátum</label><input id="checkinDate" type="date"></div><div class="field"><label>Miesto</label><input id="checkinPlace" placeholder="Kde si spolu sadneme"></div></div><p class="hint" style="margin-top:10px">Prejdite si: delenie domácnosti • peniaze • spoločný čas • duchovný život • širšiu rodinu • intimitu • jednu vec, ktorá funguje dobre • jednu vec, ktorú potrebujete upraviť.</p></div>
+    </div>
+    <div class="actions">
+      <button id="printBtnBottom" class="btn btn-primary">Tlačiť / uložiť PDF</button>
+      <button id="restartBtn" class="btn btn-danger">Začať odznova a vymazať údaje</button>
+    </div>
+    <div class="data-note">Výsledky a dohody zostávajú uložené iba v tomto prehliadači, kým ich nevymažete. Tlač používa štandardné okno prehliadača, kde môžete zvoliť „Uložiť ako PDF“.</div>
+  </section>
+
+  <section id="printReport" class="print-only print-report"></section>
+</div>
+
+<div id="printModal" class="modal hidden no-print" role="dialog" aria-modal="true" aria-labelledby="printModalTitle">
+  <div class="modal-card">
+    <h3 id="printModalTitle">Čo chcete vytlačiť?</h3>
+    <div class="field"><label for="printMode">Obsah výstupu</label><select id="printMode"><option value="discussion">Témy na rozhovor + dohody</option><option value="differences">Iba rozdiely + dohody</option><option value="all">Kompletné výsledky + dohody</option><option value="agreements">Iba naše dohody</option></select></div>
+    <div class="actions"><button id="doPrintBtn" class="btn btn-primary">Pokračovať k tlači</button><button id="cancelPrintBtn" class="btn btn-ghost">Zrušiť</button></div>
+  </div>
+</div>
+
+<script>
+const APP_DATA = {"sections":[{"id":"1","title":"Kto bude mať čo na starosti?","desc":"Pri každej položke označ svoju dnešnú predstavu. „Obaja“ neznamená nevyhnutne 50/50 – znamená, že chcete mať zodpovednosť vedome zdieľanú. „Inak / N/A“ použite, ak chcete úlohu delegovať, striedať alebo sa vás netýka.","blocks":[{"kind":"responsibility","title":"Financie a administratíva","items":["Zostavenie a pravidelná kontrola rodinného rozpočtu","Sledovanie bežných výdavkov a toho, či sa držíme rozpočtu","Platenie účtov, nájomného/hypotéky a pravidelných platieb","Správa spoločných a osobných bankových účtov","Tvorba finančnej rezervy a sporenia","Investovanie a dlhodobé finančné ciele","Rozhodovanie o väčších nákupoch","Rozhodovanie o úveroch, hypotéke alebo leasingu","Poistenie, dane, zmluvy a dôležité administratívne termíny","Kontrola digitálnych predplatných a opakovaných platieb","Plánovanie darov, charity a podpory druhých","Rozhodovanie o tom, akú časť príjmu má každý k dispozícii na osobné výdavky"]},{"kind":"responsibility","title":"Práca, kariéra a čas","items":["Plánovanie pracovného a rodinného kalendára","Koordinácia zmien, služobných ciest a období zvýšenej pracovnej záťaže","Rozhodovanie, čo sa stane, ak kariérna príležitosť jedného ovplyvní život oboch","Podpora ďalšieho vzdelávania alebo zmeny kariéry","Rozhodovanie o práci z domu a hraniciach medzi prácou a domácnosťou","Riešenie administratívy pri sťahovaní, zmene práce alebo zmene bydliska","Rozhodovanie o tom, kde budeme dlhodobo bývať","Plánovanie spoločného času popri práci"]}]},{"id":"1A","title":"Domácnosť a „neviditeľná práca“","desc":"Nejde iba o to, kto úlohu fyzicky vykoná. Skúste si všímať aj to, kto si ju musí všimnúť, naplánovať a pripomenúť.","blocks":[{"kind":"responsibility","title":"Domácnosť","items":["Plánovanie jedál a jedálneho lístka","Nákup potravín a drogérie","Objednávanie potravín alebo jedla online, ak to využívame","Varenie počas pracovných dní","Varenie cez víkendy alebo pre návštevy","Umývanie riadu / plnenie a vykladanie umývačky","Bežné upratovanie kuchyne a kúpeľne","Vysávanie a umývanie podláh","Utieranie prachu a priebežné upratovanie","Pranie, sušenie a triedenie bielizne","Žehlenie alebo starostlivosť o oblečenie podľa potreby","Odkladanie čistého prádla","Výmena posteľnej bielizne a uterákov","Sledovanie zásob v domácnosti (toaletný papier, čistiace prostriedky, lieky...)","Organizovanie skríň, úložných priestorov a triedenie nepotrebných vecí","Vynášanie odpadu a triedenie recyklácie","Starostlivosť o rastliny, balkón, záhradu alebo okolie domu","Drobné opravy a bežná údržba domácnosti","Objednávanie remeselníkov a servisov pri väčších opravách","Kontaktovanie prenajímateľa, správcu, poisťovne alebo dodávateľov služieb","Výber nábytku a vybavenia domácnosti","Plánovanie väčších domácich projektov a rekonštrukcií","Príprava domácnosti na návštevy","Organizovanie osláv, sviatkov a rodinných udalostí","Sledovanie spoločných termínov a pripomínanie toho, čo treba vybaviť","Archivovanie dokumentov, hesiel, záručných listov a dôležitých informácií"]}]},{"id":"1B","title":"Doprava, voľný čas, vzťahy a digitálny život","desc":"","blocks":[{"kind":"responsibility","title":"Doprava","items":["Výber auta alebo iného spôsobu dopravy","Tankovanie / nabíjanie vozidla","Pravidelný servis, STK/EK, pneumatiky a technická údržba","Poistenie vozidla a diaľničné známky","Čistenie auta a starostlivosť o jeho interiér","Plánovanie dlhších ciest, trás, parkovania a cestovných nákladov"]},{"kind":"responsibility","title":"Voľný čas, priatelia a širšia rodina","items":["Plánovanie rande a spoločného času vo dvojici","Plánovanie dovoleniek a víkendov","Výber toho, koľko peňazí dáme na dovolenky, zážitky a voľný čas","Iniciovanie stretnutí s priateľmi","Udržiavanie kontaktu s rodinou z mojej strany","Udržiavanie kontaktu s rodinou partnera","Výber darčekov a sledovanie narodenín/výročí","Dohadovanie návštev a prespávania hostí","Rozhodovanie, ako často budeme tráviť čas oddelene s vlastnými priateľmi","Rozhodovanie, koľko času budeme tráviť spolu a koľko individuálne","Plánovanie spoločných koníčkov, športu alebo kultúrnych aktivít"]},{"kind":"responsibility","title":"Digitálny život","items":["Správa domáceho internetu, mobilných paušálov a techniky","Výber a platenie streamingových či iných digitálnych služieb","Nastavenie hraníc pre sociálne siete, telefón a obrazovky počas spoločného času","Zálohovanie spoločných fotografií a dôležitých súborov","Rozhodovanie, čo zo súkromia nášho vzťahu zdieľame online"]}]},{"id":"1C","title":"Duchovný život, služba a komunita","desc":"","blocks":[{"kind":"responsibility","title":"Viera a služba","items":["Iniciovanie spoločnej modlitby","Iniciovanie spoločného čítania Biblie alebo duchovného rozhovoru","Plánovanie rodinných stíšení alebo pravidelného duchovného času","Rozhodovanie o zapojení do miestneho zboru","Plánovanie služby a dobrovoľníctva tak, aby nepreťažovali vzťah","Rozhodovanie o finančnej podpore zboru, misie alebo charity","Udržiavanie vzťahov s ľuďmi, ktorí nás duchovne podporujú","Hľadanie pomoci alebo poradenstva, keď sa vo vzťahu zasekneme"]},{"kind":"responsibility","title":"Zdravie a starostlivosť","items":["Sledovanie spoločných preventívnych a zdravotných termínov","Starostlivosť o partnera počas choroby alebo rekonvalescencie","Nákup a dopĺňanie bežných liekov a zdravotných potrieb","Plánovanie pohybu, spánku a zdravého režimu ako spoločnej priority","Riešenie krízovej situácie, ak jeden z nás dočasne nebude schopný fungovať"]}]},{"id":"1D","title":"Ak budeme mať deti…","desc":"Túto časť vyplňte aj vtedy, ak deti plánujete až neskôr. Nejde o to mať všetko rozhodnuté, ale odhaliť očakávania.","blocks":[{"kind":"responsibility","title":"Rodičovstvo a starostlivosť o deti","items":["Rozhodovanie, či a kedy sa chceme pokúsiť o deti","Rozhodovanie o počte detí - s otvorenosťou pre realitu, ktorú nevieme úplne kontrolovať","Výber mien","Príprava na pôrod a praktické veci pred narodením dieťaťa","Nočné vstávanie a starostlivosť o bábätko","Kŕmenie dieťaťa a príprava jedla","Prebaľovanie, kúpanie a obliekanie","Uspávanie a večerný režim","Vodenie a vyzdvihovanie zo škôlky/školy","Komunikácia so škôlkou, školou, lekármi a krúžkami","Pomoc s domácimi úlohami a učením","Organizovanie krúžkov, táborov a voľnočasových aktivít","Starostlivosť o choré dieťa a čerpanie OČR/voľna","Nákup oblečenia, školských potrieb a vybavenia","Plánovanie rodinného kalendára a detských termínov","Stanovovanie pravidiel, hraníc a dôsledkov","Riešenie rozdielnych názorov na disciplínu bez hádky pred deťmi","Budovanie duchovného života detí","Rozhodovanie o digitálnych zariadeniach, hrách a sociálnych sieťach detí","Rozhovory s deťmi o vzťahoch, sexualite, viere a náročných témach","Budovanie vzťahu detí so starými rodičmi a širšou rodinou","Rozhodovanie o škole a vzdelávaní","Rozhodovanie, ako budeme reagovať, ak dieťa bude mať špeciálne potreby alebo dlhodobé ťažkosti","Rozhodovanie o pestúnskej starostlivosti alebo adopcii, ak by sa táto otázka objavila"]},{"kind":"open","title":"Otázky na zamyslenie","items":[{"text":"Ktoré tri položky v celej matici sú pre teba najdôležitejšie a prečo?","prompt":null},{"text":"Kde očakávaš, že sa vaše predstavy budú najviac líšiť?","prompt":null}]}]},{"id":"2","title":"Postoje k rolám v manželstve","desc":"Označ mieru súhlasu: 1 = vôbec nesúhlasím, 2 = skôr nesúhlasím, 3 = neviem / záleží, 4 = skôr súhlasím, 5 = úplne súhlasím. Pri spoločnom porovnaní sa zvýraznia najmä výroky, pri ktorých sa líšite o dva alebo viac bodov.","blocks":[{"kind":"likert","title":"Miera súhlasu","items":["Muž a žena majú rovnakú hodnotu a dôstojnosť, aj keď môžu niesť odlišné zodpovednosti.","Domáce práce nie sú automaticky „mužské“ alebo „ženské“; rozdelenie má zohľadňovať schopnosti, čas, zdravie a dohodu.","Kariéra jedného z partnerov nemá automaticky väčšiu hodnotu než kariéra druhého.","Ak jeden z nás zarába výrazne viac, nedáva mu to väčšie právo rozhodovať o spoločnom živote.","Veľké rozhodnutia by sme mali robiť až po tom, čo sa obaja cítime vypočutí.","Keď sa nezhodneme, je lepšie rozhodnutie na chvíľu odložiť, ak to situácia umožňuje, než presadiť si svoje silou.","Je zdravé, aby mal každý z nás aj svoje záujmy, priateľstvá a primeraný čas osamote.","Manželstvo má mať prednosť pred tlakom širšej rodiny, priateľov či práce.","Kritizovať alebo zosmiešňovať partnera pred inými je neprijateľné.","Súkromné problémy nášho vzťahu by sme nemali zdieľať s inými bez rozmyslu; zároveň je v poriadku vyhľadať múdru pomoc, keď ju potrebujeme.","Vedenie manžela chápem skôr ako obetavú zodpovednosť, iniciatívu a službu než ako právo kontrolovať.","Podriadenosť manželky nechápem ako menejcennosť, stratu hlasu ani povinnosť tolerovať hriech, manipuláciu či ubližovanie.","Manžel by mal aktívne niesť zodpovednosť za duchovné smerovanie rodiny, nie iba „čakať, čo zariadi manželka“.","Manželka môže otvorene nesúhlasiť, klásť otázky a pomenovať obavy bez toho, aby tým popierala úctu k manželovi.","Obaja sme zodpovední za kvalitu komunikácie, atmosféru doma a schopnosť ospravedlniť sa.","Sexuálna blízkosť patrí do vzájomnej starostlivosti a nemá byť používaná ako odmena, trest alebo nástroj nátlaku.","O financiách by sme mali hovoriť otvorene vrátane dlhov, záväzkov, príjmov a finančných zlozvykov.","Heslá, telefón a online účty nemusia byť bezhranične verejné, ale tajnosti, ktoré ohrozujú dôveru, do manželstva nepatria.","Je správne mať dohodnuté hranice v kontaktoch s bývalými partnermi a v blízkych priateľstvách s opačným pohlavím.","Keď jeden z nás potrebuje oddych alebo ticho, druhý by to nemal automaticky vnímať ako odmietnutie.","Ak sa konflikt opakuje a nevieme ho riešiť, vyhľadanie manželského poradenstva je prejav zodpovednosti, nie zlyhania.","Manželstvo potrebuje pravidelný čas vo dvojici aj po svadbe, nielen „keď zostane čas“."]},{"kind":"open","title":"Čo za odpoveďami je?","items":[{"text":"Ktoré tri výroky boli pre teba najťažšie označiť? Prečo?","prompt":null},{"text":"Ktorý výrok podľa teba najviac ovplyvní váš každodenný život?","prompt":null}]}]},{"id":"3","title":"Ako sa správam vo vzťahu?","desc":"Túto časť vyplň za seba – nie za partnera. Pri každom výroku označ: často, občas, zriedka alebo nikdy. Cieľom je pomenovať vzorce, ktoré si nesiete do manželstva.","blocks":[{"kind":"frequency","title":"Sebahodnotenie","items":["Keď partner potrebuje hovoriť, dokážem ho počúvať bez toho, aby som hneď obhajoval/a seba alebo ponúkal/a riešenie.","Dávam partnerovi vedieť o dôležitých zmenách v mojom programe a nenechávam ho zbytočne v neistote.","Vedome si plánujem čas, ktorý patrí iba nám dvom.","Som ochotný/á vzdať sa niečoho, čo chcem, ak je to pre dobro nášho vzťahu.","Všímam si, kedy je partner unavený alebo preťažený, a sám/sama ponúknem pomoc.","Dokážem prevziať zodpovednosť za chybu bez dodatku „ale ty si...“.","Keď sa nahnevám, zvyšujem hlas, používam sarkazmus alebo hovorím veci, ktoré zraňujú.","Keď je konflikt nepríjemný, stiahnem sa, prestanem komunikovať alebo problém odkladám tak dlho, že ho musí riešiť partner.","Mám tendenciu partnera opravovať, kontrolovať alebo mu hovoriť, ako má veci robiť.","Mám tendenciu čakať, kým partner všetko naplánuje, pripomenie alebo rozhodne.","Pred inými o partnerovi hovorím s úctou.","Žiarlivosť alebo neistotu riešim rozhovorom, nie kontrolovaním.","Rešpektujem partnerovo súkromie, no zároveň sa neskrývam za „súkromie“, keď ide o veci, ktoré ovplyvňujú dôveru.","Dokážem si vypýtať čas osamote bez trestajúceho mlčania alebo úniku.","Viem povedať, čo potrebujem, bez očakávania, že partner „to má predsa vedieť“.","Dokážem prijať partnerovu spätnú väzbu bez toho, aby som ju okamžite otočil/a proti nemu.","Podporujem partnerove zdravé priateľstvá, oddych a osobný rast.","Aktívne prispievam k duchovnému životu nášho vzťahu.","Som ochotný/á vyhľadať pomoc, ak by sme sa dlhodobo točili v rovnakom konflikte.","Keď si všimnem, že sa partner necíti milovaný/á alebo rešpektovaný/á, snažím sa tomu porozumieť namiesto toho, aby som to zľahčil/a."]},{"kind":"open","title":"Čo chcem meniť?","items":[{"text":"Ktoré dva svoje vzorce by si chcel/a pred svadbou vedome meniť?","prompt":null}]}]},{"id":"4","title":"Komunikácia, konflikt a bezpečie","desc":"Odpovede si najprv zapíšte každý sám. Potom sa o nich porozprávajte. Nehľadajte vinníka; hľadajte mapu toho, čo sa s vami deje pod stresom.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Keď vznikne konflikt, čo zvyčajne robím ja?","prompt":"Útočím, vysvetľujem, mlčím, odchádzam, zľahčujem, chcem to vyriešiť hneď...?"},{"text":"Čo zvyčajne robí partner a čo vo mne táto reakcia spúšťa?","prompt":null},{"text":"Ako vyzerá konflikt, po ktorom sa stále cítime ako tím?","prompt":null},{"text":"Aké slová alebo správanie sú pre mňa počas hádky za čiarou?","prompt":"Napr. nadávky, krik, zosmiešňovanie, vyhrážky rozchodom, odchod bez dohody, ničenie vecí..."},{"text":"Koľko času zvyčajne potrebujem na upokojenie a ako sa môžeme dohodnúť na „pauze“, ktorá nie je útekom?","prompt":null},{"text":"Ako spoznám, že partner odo mňa potrebuje skôr počúvanie než riešenie?","prompt":null},{"text":"Ako vyzerá ospravedlnenie, ktorému dokážem veriť?","prompt":null},{"text":"Čo mi pomáha cítiť sa počas náročného rozhovoru rešpektovaný/á?","prompt":null},{"text":"Ktoré témy sa bojím otvárať a prečo?","prompt":null},{"text":"Kedy by sme podľa teba mali vyhľadať pomoc tretej osoby (mentor, pastor, poradca, terapeut)?","prompt":null},{"text":"Naša veta pre pauzu a pravidlo návratu k rozhovoru:","prompt":null}]}]},{"id":"5","title":"Viera a duchovný život","desc":"Pôvodný materiál kladie veľký dôraz na osobný čas s Bohom, spoločné stíšenia a život v miestnom zbore. Táto časť prenáša tie isté otázky do dnešného života snúbencov.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Ako dnes vyzerá môj osobný čas s Bohom - modlitba, Biblia, stíšenie? Čo mi pomáha a čo mi ho najčastejšie vytláča?","prompt":null},{"text":"Ako by som chcel/a, aby môj duchovný život vyzeral o rok?","prompt":null},{"text":"Ako mi v tom môže partner pomôcť bez toho, aby sa stal mojím „kontrolórom“?","prompt":null},{"text":"Ako si predstavujeme spoločnú modlitbu a spoločné čítanie Biblie po svadbe?","prompt":null},{"text":"Kto bude zvyčajne iniciovať duchovný čas a čo spravíme, ak nám pravidelnosť začne upadať?","prompt":null},{"text":"Čo pre nás v praxi znamená, že manžel má viesť rodinu obetavo ako Kristus?","prompt":null},{"text":"Čo pre nás v praxi znamená, že manželka prejavuje manželovi úctu, dôveru a dobrovoľnú podporu?","prompt":null},{"text":"Ako budeme robiť rozhodnutia, keď sa úprimne nezhodneme?","prompt":null},{"text":"Aké miesto má mať zbor v našom týždni a v našich prioritách?","prompt":null},{"text":"Do akej služby sa chceme zapájať ako jednotlivci a do akej možno spolu?","prompt":null},{"text":"Ako zabránime tomu, aby služba pre druhých dlhodobo vytláčala naše manželstvo?","prompt":null},{"text":"Kto sú ľudia, ktorým dôverujeme natoľko, že ich v kríze požiadame o pomoc alebo modlitbu?","prompt":null}]}]},{"id":"6","title":"Priatelia, širšia rodina, hranice a digitálny svet","desc":"Mnohé konflikty nevzniknú medzi dvoma ľuďmi, ale na hranici medzi manželstvom a okolím. Preto si tieto veci pomenujte vopred.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Ako často by sme chceli navštevovať moje a tvoje rodiny? Čo považujeme za realistické?","prompt":null},{"text":"Ako budeme deliť Vianoce, Veľkú noc, narodeniny a iné sviatky medzi rodiny?","prompt":null},{"text":"Čo urobíme, ak rodič alebo príbuzný kritizuje môjho partnera alebo zasahuje do nášho rozhodnutia?","prompt":null},{"text":"Ktoré veci z nášho vzťahu zostávajú iba medzi nami a ktoré je v poriadku zdieľať s blízkymi?","prompt":null},{"text":"Aké hranice chceme mať voči bývalým partnerom?","prompt":null},{"text":"Aké hranice chceme mať v blízkych priateľstvách s opačným pohlavím?","prompt":null},{"text":"Čo pre nás znamená vernosť v online prostredí?","prompt":"Správy, flirt, pornografia, tajné účty, mazanie konverzácií, zoznamovacie aplikácie..."},{"text":"Aký prístup chceme mať k telefónom a heslám: súkromie, otvorenosť, spoločné pravidlá?","prompt":null},{"text":"Koľko času na sociálnych sieťach, hrách, seriáloch alebo online obsahu už považujeme za problém?","prompt":null},{"text":"Čo zo spoločného života môžeme zverejňovať na sociálnych sieťach bez toho, aby sme sa vždy znovu pýtali?","prompt":null},{"text":"Kedy má mať partner alebo rodina prednosť pred notifikáciami a obrazovkou?","prompt":null}]}]},{"id":"7","title":"Blízkosť, sexualita a náklonnosť","desc":"O tejto časti sa rozprávajte pokojne a s rešpektom. Cieľom nie je sľúbiť presnú frekvenciu, ale pomenovať očakávania, hranice, obavy a spôsob, ako budete o intimite hovoriť bez nátlaku či hanby.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Čo mi pomáha cítiť sa milovaný/á a žiadaný/á aj mimo sexu?","prompt":null},{"text":"Aké prejavy fyzickej náklonnosti sú pre mňa prirodzené a ktoré menej?","prompt":null},{"text":"Aké očakávania mám od sexuálneho života v manželstve?","prompt":null},{"text":"Čoho sa v tejto oblasti obávam alebo o čom sa mi ťažko hovorí?","prompt":null},{"text":"Ako by som chcel/a, aby partner reagoval, keď na intimitu nemám energiu alebo chuť?","prompt":null},{"text":"Ako môžeme hovoriť o rozdielnej túžbe tak, aby sa ani jeden necítil odmietaný alebo nútený?","prompt":null},{"text":"Aké hranice považujeme za dôležité v súvislosti s pornografiou, erotickým obsahom a online správaním?","prompt":null},{"text":"Máme skúsenosti, zranenia alebo zvyky z minulosti, ktoré by partner mal pred svadbou poznať?","prompt":null},{"text":"Ako budeme pristupovať k plánovaniu rodičovstva a antikoncepcii? Potrebujeme si ešte niečo zistiť alebo prekonzultovať?","prompt":null},{"text":"Ako budeme chrániť súkromie našej intimity pred priateľmi, rodinou a sociálnymi sieťami?","prompt":null},{"text":"Ak by sa v sexuálnej oblasti objavil dlhodobý problém, kedy a u koho by sme boli ochotní hľadať pomoc?","prompt":null}]}]},{"id":"8","title":"Peniaze, práca a životný štýl","desc":"Často nejde iba o čísla. Peniaze môžu znamenať bezpečie, slobodu, status, štedrosť alebo kontrolu. Pomenujte, čo znamenajú pre vás.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Aký vzťah k peniazom som si priniesol/priniesla zo svojej rodiny?","prompt":"Šetrilo sa? Žilo sa „od výplaty k výplate“? Bolo normálne hovoriť o peniazoch?"},{"text":"Mám dlhy, úvery, finančné záväzky alebo pravidelné platby, ktoré partner potrebuje poznať?","prompt":null},{"text":"Aký finančný systém si predstavujem: všetko spoločné, kombinácia spoločného a osobného, iný model?","prompt":null},{"text":"Aká suma je pre nás už „väčší nákup“, ktorý treba prediskutovať?","prompt":null},{"text":"Koľko chceme mesačne sporiť alebo investovať a na čo?","prompt":null},{"text":"Koľko osobných peňazí by mal mať každý bez potreby vysvetľovať každý nákup?","prompt":null},{"text":"Ako chceme pristupovať k darovaniu, podpore rodiny, zboru alebo charity?","prompt":null},{"text":"Čo pre mňa znamená „dobrá životná úroveň“?","prompt":null},{"text":"Ako dôležité sú pre mňa dovolenky, bývanie, auto, technika, jedlo, zážitky a iné výdavky?","prompt":null},{"text":"Koľko práce je už „príliš veľa práce“ na úkor vzťahu?","prompt":null},{"text":"Čo ak jeden z nás dostane ponuku, ktorá znamená sťahovanie, dlhé dochádzanie alebo časté cesty?","prompt":null},{"text":"Ako si predstavujeme delenie domácnosti, ak jeden zarába viac, ale obaja pracujú podobný počet hodín?","prompt":null},{"text":"Ako si predstavujeme delenie povinností, ak jeden zostane dočasne doma s deťmi alebo bez práce?","prompt":null}]}]},{"id":"9","title":"Deti a rodičovstvo","desc":"Nie všetko môžete vedieť vopred. Dôležité je odhaliť hodnoty a očakávania, ktoré si každý nesie zo svojej rodiny.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Chceme deti? Ak áno, aké predstavy máme o načasovaní a počte?","prompt":null},{"text":"Ako by sme prežívali situáciu, keby sa nám dlho nedarilo mať deti?","prompt":null},{"text":"Ako sa pozeráme na vyšetrenia plodnosti, liečbu neplodnosti, adopciu alebo pestúnsku starostlivosť?","prompt":null},{"text":"Ako si predstavujeme rodičovskú dovolenku a návrat do práce?","prompt":null},{"text":"Ktoré veci z výchovy v mojej rodine by som chcel/a zopakovať?","prompt":null},{"text":"Ktoré veci z výchovy v mojej rodine by som naopak nechcel/a preniesť ďalej?","prompt":null},{"text":"Ako si predstavujem disciplínu a nastavovanie hraníc deťom?","prompt":null},{"text":"Ako by sme riešili situáciu, keď sa v zásadnej výchovnej otázke nezhodneme?","prompt":null},{"text":"Akú úlohu majú mať starí rodičia pri starostlivosti o deti a kde sú hranice ich vplyvu?","prompt":null},{"text":"Ako chceme viesť deti k viere bez toho, aby sa duchovný život stal iba povinnosťou?","prompt":null},{"text":"Aký postoj máme k obrazovkám, mobilom, sociálnym sieťam a hrám u detí?","prompt":null},{"text":"Ako chceme hovoriť s deťmi o tele, sexualite, vzťahoch a bezpečí?","prompt":null},{"text":"Čo by pre nás znamenalo prijať dieťa s výraznými zdravotnými alebo špeciálnymi potrebami?","prompt":null}]}]},{"id":"10","title":"Sebahodnota, bezpečie a podpora","desc":"Pôvodný materiál sa pýta, kedy sa človek cíti dobre, neistý a čo môže partner robiť, aby posilňoval vedomie jeho hodnoty. Táto téma zostáva veľmi aktuálna.","blocks":[{"kind":"open","title":"Otázky na rozhovor","items":[{"text":"Sám/sama zo seba mám dobrý pocit najmä vtedy, keď...","prompt":null},{"text":"Cítim sa neistý/á, skleslý/á alebo bezcenný/á najmä vtedy, keď...","prompt":null},{"text":"Keď som pod veľkým stresom, najčastejšie potrebujem...","prompt":null},{"text":"Keď som pod veľkým stresom, partner by nemal automaticky...","prompt":null},{"text":"Ktoré slová od partnera vo mne najviac budujú pocit prijatia a hodnoty?","prompt":null},{"text":"Ktoré konkrétne skutky mi hovoria „som s tebou, záleží mi na tebe“?","prompt":null},{"text":"Čo môže partner robiť, aby ma podporoval v osobnom raste bez toho, aby ma riadil?","prompt":null},{"text":"V čom potrebujem, aby mi partner viac dôveroval?","prompt":null},{"text":"V čom sa ja potrebujem naučiť viac dôverovať partnerovi?","prompt":null}]}]}],"jointQuestions":[{"text":"Tri oblasti, v ktorých máme veľmi podobné očakávania:","prompt":null},{"text":"Tri oblasti, v ktorých sa naše očakávania najviac líšia:","prompt":null},{"text":"Jedna domáca zodpovednosť, pri ktorej chceme po svadbe vyskúšať konkrétny systém:","prompt":null},{"text":"Naša dohoda o peniazoch a väčších nákupoch:","prompt":null},{"text":"Naša dohoda o pravidelnom čase vo dvojici:","prompt":null},{"text":"Naša dohoda o čase s priateľmi a širšou rodinou:","prompt":null},{"text":"Naša dohoda o telefónoch, sociálnych sieťach a online hraniciach:","prompt":null},{"text":"Naša dohoda o spoločnom duchovnom živote:","prompt":null},{"text":"Naše pravidlá pre konflikt a zmierenie:","prompt":null},{"text":"Téma, ku ktorej sa potrebujeme pred svadbou ešte vrátiť alebo si prizvať pomoc:","prompt":null}],"jointTitle":"Naše najdôležitejšie dohody","jointDesc":"Toto je časť, ku ktorej sa môžete vrátiť aj po svadbe. Nezapisujte ideály; zapíšte to, čo ste si naozaj dohodli."};
+const STORAGE_KEY = 'stavani_na_skale_snubenci_v1';
+const choiceLabels = {
+  responsibility:{self:'Ja',partner:'Partner',both:'Obaja',other:'Inak / N/A'},
+  frequency:{often:'Často',sometimes:'Občas',rarely:'Zriedka',never:'Nikdy'}
+};
+const defaultState=()=>({
+  meta:{nameA:'',nameB:'',date:'',note:''},phase:'setup',active:'a',sectionIndex:0,
+  answers:{a:{},b:{}},flags:{a:{},b:{}},agreements:{},joint:{},fiveTopics:Array.from({length:5},()=>({topic:'',action:''})),checkin:{date:'',place:''},filter:'discussion'
+});
+let state=defaultState();
+let storageWorks=true;
+
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+const otherKey=k=>k==='a'?'b':'a';
+const nameOf=k=>state.meta[k==='a'?'nameA':'nameB'] || (k==='a'?'Partner A':'Partner B');
+
+function safeLoad(){
+  try{const raw=localStorage.getItem(STORAGE_KEY);if(raw){const v=JSON.parse(raw);state=Object.assign(defaultState(),v);state.answers=state.answers||{a:{},b:{}};state.flags=state.flags||{a:{},b:{}};return true;}}catch(e){storageWorks=false}return false;
+}
+function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(e){storageWorks=false}}
+function clearSaved(){try{localStorage.removeItem(STORAGE_KEY)}catch(e){}}
+
+function qid(sectionId,kind,blockIndex,itemIndex){return `${sectionId}.${kind}.${blockIndex}.${itemIndex}`}
+function allQuestionDefs(){
+  const out=[];
+  APP_DATA.sections.forEach(sec=>sec.blocks.forEach((block,bi)=>block.items.forEach((item,ii)=>out.push({id:qid(sec.id,block.kind,bi,ii),sectionId:sec.id,sectionTitle:sec.title,blockTitle:block.title,kind:block.kind,text:typeof item==='string'?item:item.text,prompt:typeof item==='object'?item.prompt:null}))));
+  return out;
+}
+const QUESTION_DEFS=allQuestionDefs();
+const QMAP=Object.fromEntries(QUESTION_DEFS.map(q=>[q.id,q]));
+
+function setup(){
+  const had=safeLoad();
+  const today=new Date(); const localDate=new Date(today.getTime()-today.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  if(!state.meta.date) state.meta.date=localDate;
+  $('#nameA').value=state.meta.nameA||''; $('#nameB').value=state.meta.nameB||''; $('#dateField').value=state.meta.date||localDate; $('#coupleNote').value=state.meta.note||'';
+  if(had && state.phase!=='setup') $('#resumeBtn').classList.remove('hidden');
+  $('#startBtn').addEventListener('click',startFreshOrSetup);
+  $('#resumeBtn').addEventListener('click',()=>showPhase());
+  $('#importBtnSetup').addEventListener('click',()=>$('#importFile').click());
+  $('#importFile').addEventListener('change',importBackup);
+  $('#saveBackupBtn').addEventListener('click',exportBackup); $('#backupResultsBtn').addEventListener('click',exportBackup);
+  $('#backToStartBtn').addEventListener('click',showSetupOnly);
+  $('#prevSectionBtn').addEventListener('click',()=>changeSection(-1)); $('#nextSectionBtn').addEventListener('click',()=>changeSection(1));
+  $('#finishPartnerBtn').addEventListener('click',finishPartner);
+  $('#startSecondBtn').addEventListener('click',()=>{state.phase='participant';state.active='b';state.sectionIndex=0;save();showPhase()});
+  $('#filters').addEventListener('click',e=>{const b=e.target.closest('[data-filter]');if(!b)return;state.filter=b.dataset.filter;save();renderResults()});
+  $('#printBtn').addEventListener('click',openPrintModal); $('#printBtnBottom').addEventListener('click',openPrintModal);
+  $('#cancelPrintBtn').addEventListener('click',()=>$('#printModal').classList.add('hidden'));
+  $('#doPrintBtn').addEventListener('click',()=>{const m=$('#printMode').value;buildPrintReport(m);$('#printModal').classList.add('hidden');setTimeout(()=>window.print(),50)});
+  $('#restartBtn').addEventListener('click',resetAll);
+  showPhase();
+}
+
+function showSetupOnly(){
+  ['appScreen','handoffScreen','resultsScreen'].forEach(id=>$('#'+id).classList.add('hidden'));
+  $('#setupScreen').classList.remove('hidden');
+  $('#nameA').value=state.meta.nameA||''; $('#nameB').value=state.meta.nameB||''; $('#dateField').value=state.meta.date||''; $('#coupleNote').value=state.meta.note||'';
+  if(state.phase!=='setup') $('#resumeBtn').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function startFreshOrSetup(){
+  const a=$('#nameA').value.trim(), b=$('#nameB').value.trim();
+  if(!a||!b){alert('Zadajte, prosím, mená oboch partnerov.');return}
+  const preserve = (Object.keys(state.answers.a||{}).length || Object.keys(state.answers.b||{}).length);
+  if(preserve && !confirm('V prehliadači už sú rozpracované odpovede. Chcete ich nahradiť novým vyplňovaním?')) return;
+  state=defaultState(); state.meta={nameA:a,nameB:b,date:$('#dateField').value,note:$('#coupleNote').value.trim()}; state.phase='participant';state.active='a';state.sectionIndex=0;save();showPhase();
+}
+
+function showPhase(){
+  ['setupScreen','appScreen','handoffScreen','resultsScreen'].forEach(id=>$('#'+id).classList.add('hidden'));
+  if(state.phase==='setup'){
+    $('#setupScreen').classList.remove('hidden');
+    $('#nameA').value=state.meta.nameA||'';$('#nameB').value=state.meta.nameB||'';$('#dateField').value=state.meta.date||'';$('#coupleNote').value=state.meta.note||'';
+    if(Object.keys(state.answers.a||{}).length||Object.keys(state.answers.b||{}).length)$('#resumeBtn').classList.remove('hidden');
+  }else if(state.phase==='participant'){$('#appScreen').classList.remove('hidden');renderParticipant()}
+  else if(state.phase==='handoff'){$('#handoffScreen').classList.remove('hidden');$('#handoffText').textContent=`${nameOf('a')} má svoju časť hotovú. Odpovede sú teraz skryté. ${nameOf('b')} vyplní rovnaký pracovný list bez toho, aby ich videl/a.`}
+  else if(state.phase==='results'){$('#resultsScreen').classList.remove('hidden');renderResults()}
+}
+
+function renderParticipant(){
+  const who=state.active; const sec=APP_DATA.sections[state.sectionIndex];
+  $('#whoName').textContent=nameOf(who); $('#sectionKicker').textContent=`Časť ${sec.id} z ${APP_DATA.sections.length}`; $('#sectionTitle').textContent=sec.title; $('#sectionDesc').textContent=sec.desc||'';
+  renderNav(); renderProgress();
+  const host=$('#sectionContent');host.innerHTML='';
+  sec.blocks.forEach((block,bi)=>{
+    const wrap=document.createElement('section');wrap.className='block';
+    const h=document.createElement('h3');h.textContent=block.title;wrap.appendChild(h);
+    block.items.forEach((item,ii)=>wrap.appendChild(renderQuestion(sec,block,bi,item,ii,who)));
+    host.appendChild(wrap);
+  });
+  $('#prevSectionBtn').disabled=state.sectionIndex===0;
+  const last=state.sectionIndex===APP_DATA.sections.length-1;
+  $('#nextSectionBtn').classList.toggle('hidden',last);$('#finishPartnerBtn').classList.toggle('hidden',!last);
+  $('#finishPartnerBtn').textContent=who==='a'?'Skryť odpovede a odovzdať zariadenie':'Dokončiť a zobraziť spoločné výsledky';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderNav(){
+  const nav=$('#sectionNav');nav.innerHTML='';
+  APP_DATA.sections.forEach((sec,i)=>{const b=document.createElement('button');b.type='button';b.className='navbtn'+(i===state.sectionIndex?' active':'')+(sectionCompletion(state.active,i)===1?' done':'');b.textContent=sec.id;b.title=sec.title;b.addEventListener('click',()=>{state.sectionIndex=i;save();renderParticipant()});nav.appendChild(b)});
+}
+function sectionQuestionIds(i){const sec=APP_DATA.sections[i];return QUESTION_DEFS.filter(q=>q.sectionId===sec.id).map(q=>q.id)}
+function sectionCompletion(who,i){const ids=sectionQuestionIds(i);if(!ids.length)return 1;let n=0;ids.forEach(id=>{const v=state.answers[who]?.[id];if(v!==undefined&&v!==null&&String(v).trim()!=='')n++});return n/ids.length}
+function overallCompletion(who){const ids=QUESTION_DEFS.map(q=>q.id);let n=0;ids.forEach(id=>{const v=state.answers[who]?.[id];if(v!==undefined&&v!==null&&String(v).trim()!=='')n++});return {n,total:ids.length,p:ids.length?Math.round(100*n/ids.length):0}}
+function renderProgress(){const c=overallCompletion(state.active);$('#progressBar').style.width=c.p+'%';$('#progressText').textContent=`${c.p} % vyplnené • ${c.n} z ${c.total} odpovedí`}
+
+function renderQuestion(sec,block,bi,item,ii,who){
+  const id=qid(sec.id,block.kind,bi,ii), text=typeof item==='string'?item:item.text, prompt=typeof item==='object'?item.prompt:null;
+  const card=document.createElement('div');card.className='question'+(state.flags[who]?.[id]?' flagged':'');
+  const top=document.createElement('div');top.className='qtop';
+  const qt=document.createElement('div');qt.className='qtext';qt.textContent=text;if(prompt){const s=document.createElement('span');s.className='hint';s.textContent=prompt;qt.appendChild(s)}
+  const fl=document.createElement('label');fl.className='flag';const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!state.flags[who]?.[id];const fs=document.createElement('span');fs.textContent='💬 Na rozhovor';fl.append(cb,fs);cb.addEventListener('change',()=>{state.flags[who][id]=cb.checked;card.classList.toggle('flagged',cb.checked);save();});
+  top.append(qt,fl);card.appendChild(top);
+  if(block.kind==='responsibility') addChoices(card,id,who,[['self','Ja'],['partner','Partner'],['both','Obaja'],['other','Inak / N/A']]);
+  else if(block.kind==='likert') addChoices(card,id,who,[['1','1'],['2','2'],['3','3'],['4','4'],['5','5']]);
+  else if(block.kind==='frequency') addChoices(card,id,who,[['often','Často'],['sometimes','Občas'],['rarely','Zriedka'],['never','Nikdy']]);
+  else if(block.kind==='open'){
+    const ta=document.createElement('textarea');ta.className='open-answer';ta.placeholder='Tvoja odpoveď…';ta.value=state.answers[who]?.[id]||'';ta.addEventListener('input',()=>{state.answers[who][id]=ta.value;save();renderProgress()});card.appendChild(ta);
+  }
+  return card;
+}
+function addChoices(card,id,who,choices){
+  const row=document.createElement('div');row.className='choice-row';
+  choices.forEach(([val,label])=>{const l=document.createElement('label');l.className='choice';const r=document.createElement('input');r.type='radio';r.name=`${who}-${id}`;r.value=val;r.checked=state.answers[who]?.[id]===val;const s=document.createElement('span');s.textContent=label;l.append(r,s);r.addEventListener('change',()=>{state.answers[who][id]=val;save();renderProgress();renderNav()});row.appendChild(l)});card.appendChild(row)
+}
+function changeSection(d){const ni=Math.max(0,Math.min(APP_DATA.sections.length-1,state.sectionIndex+d));state.sectionIndex=ni;save();renderParticipant()}
+function finishPartner(){
+  const c=overallCompletion(state.active);
+  if(c.p<100 && !confirm(`Táto časť je vyplnená na ${c.p} %. Chcete pokračovať aj s nevyplnenými otázkami?`))return;
+  if(state.active==='a'){state.phase='handoff';state.sectionIndex=0}else{state.phase='results';state.sectionIndex=0}
+  save();showPhase();
+}
+
+function normalizedResponsibility(who,val){if(val==='self')return who;if(val==='partner')return otherKey(who);return val}
+function responsibilityDisplay(norm){if(norm==='a')return nameOf('a');if(norm==='b')return nameOf('b');if(norm==='both')return 'Obaja';if(norm==='other')return 'Inak / N/A';return '—'}
+function rawDisplay(kind,who,val){if(val===undefined||val===null||val==='')return '—';if(kind==='responsibility')return responsibilityDisplay(normalizedResponsibility(who,val));if(kind==='frequency')return choiceLabels.frequency[val]||val;return val}
+function compareQuestion(q){
+  const av=state.answers.a?.[q.id], bv=state.answers.b?.[q.id], flagged=!!state.flags.a?.[q.id]||!!state.flags.b?.[q.id];
+  let status='neutral', label='Porovnať', autoDiscussion=false;
+  if(q.kind==='responsibility'){
+    if(av&&bv){const an=normalizedResponsibility('a',av),bn=normalizedResponsibility('b',bv);if(an===bn){status='match';label='Zhoda'}else{status='diff';label='Rozdielne očakávania';autoDiscussion=true}}
+  } else if(q.kind==='likert'){
+    if(av&&bv){const d=Math.abs(Number(av)-Number(bv));if(d<=1){status='match';label=d===0?'Zhoda':'Blízke odpovede'}else{status='diff';label=`Rozdiel ${d} body`;autoDiscussion=true}}
+  } else if(q.kind==='frequency'){status='self';label='Sebapohľad'}
+  else if(q.kind==='open'){status='open';label='Otvorené odpovede'}
+  return {q,av,bv,flagged,status,label,discussion:flagged||autoDiscussion};
+}
+function allComparisons(){return QUESTION_DEFS.map(compareQuestion)}
+
+function renderResults(){
+  $('#resultsTitle').textContent=`${nameOf('a')} + ${nameOf('b')}`;
+  $$('#filters .filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===state.filter));
+  const comps=allComparisons();
+  const matches=comps.filter(x=>x.status==='match').length,diffs=comps.filter(x=>x.status==='diff').length,discussion=comps.filter(x=>x.discussion).length,flags=comps.filter(x=>x.flagged).length;
+  $('#stats').innerHTML=`<div class="stat"><strong>${matches}</strong><span>zhôd a blízkych odpovedí</span></div><div class="stat"><strong>${diffs}</strong><span>automaticky zachytených rozdielov</span></div><div class="stat"><strong>${discussion}</strong><span>tém odporúčaných na rozhovor</span></div><div class="stat"><strong>${flags}</strong><span>ručne označených tém 💬</span></div>`;
+  const host=$('#resultsList');host.innerHTML='';
+  APP_DATA.sections.forEach(sec=>{
+    const items=comps.filter(x=>x.q.sectionId===sec.id && resultVisible(x,state.filter));
+    if(!items.length)return;
+    const s=document.createElement('section');s.className='result-section';s.innerHTML=`<h3>${esc(sec.id)}. ${esc(sec.title)}</h3>`;items.forEach(x=>s.appendChild(renderResultItem(x)));host.appendChild(s);
+  });
+  if(!host.children.length)host.innerHTML='<div class="empty">Pre tento filter zatiaľ nie sú žiadne položky.</div>';
+  renderJoint();save();
+}
+function resultVisible(x,f){if(f==='all')return true;if(f==='discussion')return x.discussion;if(f==='differences')return x.status==='diff';if(f==='matches')return x.status==='match';if(f==='open')return x.status==='open';return true}
+function renderResultItem(x){
+  const d=document.createElement('div');d.className='result-item '+(x.status==='match'?'good':x.status==='diff'?'diff':'')+(x.flagged?' talk':'');
+  const a=rawDisplay(x.q.kind,'a',x.av),b=rawDisplay(x.q.kind,'b',x.bv);
+  d.innerHTML=`<div class="result-title">${esc(x.q.text)}</div><div class="result-grid"><div class="answer-box"><strong>${esc(nameOf('a'))}</strong>${esc(a)}</div><div class="answer-box"><strong>${esc(nameOf('b'))}</strong>${esc(b)}</div></div><div><span class="status ${x.status==='match'?'good':x.status==='diff'?'diff':'talk'}">${esc(x.label)}</span>${x.flagged?'<span class="status talk">💬 označené na rozhovor</span>':''}</div>`;
+  if(x.status==='diff'){
+    const follow=document.createElement('div');follow.className='followup';follow.textContent=x.q.kind==='responsibility'?'Skúste si položiť: Prečo si každý z vás predstavoval práve takéto rozdelenie? Ako sa to robilo vo vašich rodinách? Akú konkrétnu dohodu chcete vyskúšať?':'Skúste si položiť: Čo tento výrok znamená pre každého z vás v praxi? V akej konkrétnej situácii by sa rozdiel mohol prejaviť?';d.appendChild(follow)
+  }
+  if(x.discussion){
+    const ag=document.createElement('div');ag.className='agreement';const lab=document.createElement('label');lab.textContent='Naša dohoda / čo s tým urobíme:';const ta=document.createElement('textarea');ta.value=state.agreements[x.q.id]||'';ta.placeholder='Zapíšte si konkrétnu dohodu alebo ďalší krok…';ta.addEventListener('input',()=>{state.agreements[x.q.id]=ta.value;save()});ag.append(lab,ta);d.appendChild(ag)
+  }
+  return d;
+}
+
+function renderJoint(){
+  const host=$('#jointQuestions');host.innerHTML='';
+  APP_DATA.jointQuestions.forEach((q,i)=>{const card=document.createElement('div');card.className='question';const text=document.createElement('div');text.className='qtext';text.textContent=q.text;const ta=document.createElement('textarea');ta.className='open-answer';ta.value=state.joint['j'+i]||'';ta.placeholder='Naša spoločná odpoveď…';ta.addEventListener('input',()=>{state.joint['j'+i]=ta.value;save()});card.append(text,ta);host.appendChild(card)});
+  const five=$('#fiveTopics');five.innerHTML='';state.fiveTopics=state.fiveTopics||Array.from({length:5},()=>({topic:'',action:''}));
+  state.fiveTopics.forEach((r,i)=>{const row=document.createElement('div');row.className='grid2';row.style.margin='8px 0';row.innerHTML=`<div class="field"><label>${i+1}. Téma</label><input data-five="topic" data-i="${i}" value="${esc(r.topic)}"></div><div class="field"><label>Čo potrebujeme dohodnúť / urobiť</label><input data-five="action" data-i="${i}" value="${esc(r.action)}"></div>`;five.appendChild(row)});
+  five.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{state.fiveTopics[Number(inp.dataset.i)][inp.dataset.five]=inp.value;save()}));
+  $('#checkinDate').value=state.checkin?.date||'';$('#checkinPlace').value=state.checkin?.place||'';
+  $('#checkinDate').oninput=()=>{state.checkin.date=$('#checkinDate').value;save()};$('#checkinPlace').oninput=()=>{state.checkin.place=$('#checkinPlace').value;save()};
+}
+
+function openPrintModal(){$('#printModal').classList.remove('hidden')}
+function buildPrintReport(mode){
+  const host=$('#printReport');const comps=allComparisons();const date=state.meta.date?new Date(state.meta.date+'T00:00:00').toLocaleDateString('sk-SK'):'';
+  let out=`<h1>STAVANÍ NA SKALE</h1><div class="pmeta"><strong>${esc(nameOf('a'))} + ${esc(nameOf('b'))}</strong>${date?' • '+esc(date):''}${state.meta.note?' • '+esc(state.meta.note):''}<br>Pracovný list pre snúbencov – výsledky a dohody</div>`;
+  if(mode!=='agreements'){
+    const pred=mode==='all'?()=>true:mode==='differences'?(x=>x.status==='diff'):(x=>x.discussion);
+    APP_DATA.sections.forEach(sec=>{const items=comps.filter(x=>x.q.sectionId===sec.id&&pred(x));if(!items.length)return;out+=`<h2>${esc(sec.id)}. ${esc(sec.title)}</h2>`;items.forEach(x=>{out+=`<div class="print-topic"><strong>${esc(x.q.text)}</strong><table><tr><th>${esc(nameOf('a'))}</th><th>${esc(nameOf('b'))}</th></tr><tr><td>${esc(rawDisplay(x.q.kind,'a',x.av))}</td><td>${esc(rawDisplay(x.q.kind,'b',x.bv))}</td></tr></table><div class="muted">${esc(x.label)}${x.flagged?' • označené na rozhovor':''}</div>`;if(state.agreements[x.q.id])out+=`<div class="agreement-print"><strong>Naša dohoda:</strong> ${esc(state.agreements[x.q.id])}</div>`;out+='</div>'})});
+  }
+  out+=`<h2>Naše najdôležitejšie dohody</h2>`;
+  APP_DATA.jointQuestions.forEach((q,i)=>{const v=state.joint['j'+i]||'';if(mode==='agreements'&&!v)return;out+=`<div class="print-topic"><strong>${esc(q.text)}</strong><div>${v?esc(v):'<span class="muted">Bez odpovede</span>'}</div></div>`});
+  const filled=(state.fiveTopics||[]).filter(r=>r.topic||r.action);if(filled.length){out+='<h3>Päť tém, ktoré nechceme nechať nevyslovené</h3><table><tr><th>#</th><th>Téma</th><th>Čo potrebujeme dohodnúť / urobiť</th></tr>';filled.forEach((r,i)=>out+=`<tr><td>${i+1}</td><td>${esc(r.topic)}</td><td>${esc(r.action)}</td></tr>`);out+='</table>'}
+  if(state.checkin?.date||state.checkin?.place)out+=`<h3>Náš prvý „check-in“ po svadbe</h3><p><strong>Dátum:</strong> ${esc(state.checkin.date||'—')} &nbsp;&nbsp; <strong>Miesto:</strong> ${esc(state.checkin.place||'—')}</p>`;
+  out+='<p class="muted" style="margin-top:8mm">Cieľom nie je mať dokonale rozdelené úlohy. Cieľom je, aby sa z dvoch ľudí stal tím, ktorý vie hovoriť pravdivo, slúžiť si navzájom a vedome budovať spoločný život.</p>';
+  host.innerHTML=out;
+}
+
+function exportBackup(){
+  const blob=new Blob([JSON.stringify({app:'STAVANI_NA_SKALE',version:1,savedAt:new Date().toISOString(),state},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`stavani-na-skale-${(state.meta.nameA||'partner-a').replace(/\s+/g,'-')}-${(state.meta.nameB||'partner-b').replace(/\s+/g,'-')}.json`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},100)
+}
+function importBackup(e){const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const data=JSON.parse(r.result);if(!data.state||data.app!=='STAVANI_NA_SKALE')throw new Error();state=Object.assign(defaultState(),data.state);save();alert('Záloha bola načítaná.');showPhase()}catch(err){alert('Tento súbor nie je platná záloha pracovného listu.')}};r.readAsText(f);e.target.value=''}
+function resetAll(){if(!confirm('Naozaj chcete vymazať všetky odpovede, výsledky aj dohody z tohto prehliadača?'))return;if(!confirm('Táto akcia sa nedá vrátiť späť. Pokračovať?'))return;clearSaved();state=defaultState();location.reload()}
+
+setup();
+</script>
+</body>
+</html>
