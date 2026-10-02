@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Multiplication Fun / Násobenie Hrou</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f9ff;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .chunky-btn {
+            transition: all 0.1s ease;
+            box-shadow: 0 6px 0px rgba(0,0,0,0.2);
+        }
+        .chunky-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px rgba(0,0,0,0.2);
+        }
+        .chunky-btn-selected {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px rgba(0,0,0,0.2);
+            filter: brightness(0.9);
+            border: 4px solid #fff;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .shake {
+            animation: shake 0.4s;
+        }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+            100% { transform: translateX(0); }
+        }
+        .pop {
+            animation: pop 0.3s ease-out;
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Main App Container -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-blue-300 flex flex-col h-[90vh] max-h-[800px]">
+        
+        <!-- Header / Language Toggle -->
+        <div class="bg-blue-400 p-4 flex justify-between items-center text-white">
+            <h1 id="app-title" class="text-xl font-black tracking-wide">Multiplication Fun! 🚀</h1>
+            <div class="flex space-x-2 bg-blue-500 rounded-full p-1">
+                <button onclick="setLang('en')" id="lang-en" class="px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm">EN</button>
+                <button onclick="setLang('sk')" id="lang-sk" class="px-3 py-1 rounded-full font-bold text-white text-sm">SK</button>
+            </div>
+        </div>
+
+        <div class="flex-grow overflow-y-auto relative p-4 flex flex-col bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlMGYyZmUiLz48L3N2Zz4=')]">
+            
+            <!-- SCREEN 1: Setup -->
+            <div id="screen-setup" class="flex flex-col h-full fade-in">
+                <h2 id="t-select-number" class="text-2xl font-bold text-center text-blue-800 mb-4">Choose a Number:</h2>
+                
+                <!-- Number Grid -->
+                <div class="grid grid-cols-5 gap-2 mb-6">
+                    <button onclick="selectNumber(1)" id="num-btn-1" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">1</button>
+                    <button onclick="selectNumber(2)" id="num-btn-2" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">2</button>
+                    <button onclick="selectNumber(3)" id="num-btn-3" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">3</button>
+                    <button onclick="selectNumber(4)" id="num-btn-4" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">4</button>
+                    <button onclick="selectNumber(5)" id="num-btn-5" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl border-4 border-white chunky-btn-selected">5</button>
+                    <button onclick="selectNumber(6)" id="num-btn-6" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">6</button>
+                    <button onclick="selectNumber(7)" id="num-btn-7" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">7</button>
+                    <button onclick="selectNumber(8)" id="num-btn-8" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">8</button>
+                    <button onclick="selectNumber(9)" id="num-btn-9" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">9</button>
+                    <button onclick="selectNumber(10)" id="num-btn-10" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">10</button>
+                </div>
+
+                <h2 id="t-select-mode" class="text-2xl font-bold text-center text-blue-800 mb-4">Mode:</h2>
+                
+                <!-- Mode Selection -->
+                <div class="flex flex-col space-y-3 mb-auto">
+                    <button onclick="selectMode('exact')" id="mode-exact" class="mode-select chunky-btn bg-green-400 text-green-900 font-bold text-xl py-4 rounded-2xl border-4 border-white chunky-btn-selected">
+                        Only 5
+                    </button>
+                    <button onclick="selectMode('upto')" id="mode-upto" class="mode-select chunky-btn bg-purple-400 text-purple-900 font-bold text-xl py-4 rounded-2xl">
+                        1 to 5
+                    </button>
+                </div>
+
+                <!-- Start Button -->
+                <button onclick="startQuiz()" id="t-start-quiz" class="chunky-btn bg-red-500 text-white font-black text-2xl py-4 rounded-3xl mt-6">
+                    Start Quiz! 🎮
+                </button>
+            </div>
+
+            <!-- SCREEN 2: Quiz -->
+            <div id="screen-quiz" class="hidden flex-col h-full fade-in">
+                
+                <!-- Progress and Score -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="bg-blue-100 text-blue-800 font-bold px-4 py-2 rounded-xl border-2 border-blue-200">
+                        <span id="t-question">Q</span>: <span id="q-current">1</span>/10
+                    </div>
+                    <div class="bg-green-100 text-green-800 font-bold px-4 py-2 rounded-xl border-2 border-green-200 flex items-center">
+                        ⭐ <span id="q-score" class="ml-1">0</span>
+                    </div>
+                </div>
+
+                <!-- Equation Area -->
+                <div class="flex-grow flex flex-col items-center justify-center mb-4">
+                    <div id="equation-box" class="bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden">
+                        <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center text-5xl opacity-0 transition-opacity duration-200 z-10 pointer-events-none"></div>
+                        <div class="text-5xl md:text-6xl font-black text-gray-800 flex items-center justify-center space-x-2">
+                            <span id="eq-num1">5</span>
+                            <span class="text-blue-500">×</span>
+                            <span id="eq-num2">3</span>
+                            <span class="text-purple-500">=</span>
+                        </div>
+                        <div class="mt-4">
+                            <div id="answer-display" class="inline-block min-w-[100px] h-16 bg-gray-100 border-b-4 border-gray-300 rounded-xl text-5xl font-black text-blue-600 leading-[64px]">?</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Numpad -->
+                <div class="grid grid-cols-3 gap-2 mt-auto">
+                    <!-- Numbers -->
+                    <button onclick="typeNum(1)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">1</button>
+                    <button onclick="typeNum(2)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">2</button>
+                    <button onclick="typeNum(3)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">3</button>
+                    <button onclick="typeNum(4)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">4</button>
+                    <button onclick="typeNum(5)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">5</button>
+                    <button onclick="typeNum(6)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">6</button>
+                    <button onclick="typeNum(7)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">7</button>
+                    <button onclick="typeNum(8)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">8</button>
+                    <button onclick="typeNum(9)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">9</button>
+                    
+                    <!-- Actions -->
+                    <button onclick="deleteNum()" class="chunky-btn bg-red-100 border-2 border-red-300 text-red-600 font-black text-2xl py-3 rounded-2xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" /></svg>
+                    </button>
+                    <button onclick="typeNum(0)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">0</button>
+                    <button onclick="submitAnswer()" class="chunky-btn bg-green-500 border-2 border-green-600 text-white font-black text-xl py-3 rounded-2xl flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: Results -->
+            <div id="screen-results" class="hidden flex-col h-full justify-center fade-in text-center">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 id="t-results-title" class="text-3xl font-black text-blue-800 mb-2">Quiz Complete!</h2>
+                <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-blue-100 mb-8 inline-block mx-auto">
+                    <p class="text-gray-500 font-bold mb-1" id="t-score-label">Your Score</p>
+                    <p class="text-5xl font-black text-green-500"><span id="r-score">10</span> <span class="text-3xl text-gray-400">/ 10</span></p>
+                </div>
+                
+                <div class="flex flex-col space-y-4 w-full mt-auto">
+                    <button onclick="generateNewQuiz(true)" class="chunky-btn bg-blue-500 text-white font-black text-xl py-4 rounded-2xl flex items-center justify-center space-x-2">
+                        <span id="t-btn-more">10 More Questions</span> <span>➕</span>
+                    </button>
+                    <button onclick="goHome()" class="chunky-btn bg-yellow-400 text-yellow-900 font-black text-xl py-4 rounded-2xl flex items-center justify-center space-x-2">
+                        <span id="t-btn-play-again">Change Settings</span> <span>⚙️</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- State ---
+        let currentLang = 'en';
+        let currentNumber = 5;
+        let currentMode = 'exact'; // 'exact' or 'upto'
+        
+        let quizQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentScore = 0;
+        let currentAnswer = "";
+        let isProcessing = false;
+
+        // --- Translations ---
+        const translations = {
+            en: {
+                title: "Multiplication Fun! 🚀",
+                selectNumber: "Choose a Number:",
+                selectMode: "Mode:",
+                modeExact: "Only {n}",
+                modeUpTo: "1 to {n}",
+                startQuiz: "Start Quiz! 🎮",
+                question: "Q",
+                resultsTitle: "Quiz Complete! 🎉",
+                scoreLabel: "Your Score",
+                btnMore: "10 More Questions",
+                btnPlayAgain: "Change Settings"
+            },
+            sk: {
+                title: "Násobenie Hrou! 🚀",
+                selectNumber: "Vyber si číslo:",
+                selectMode: "Režim:",
+                modeExact: "Iba {n}",
+                modeUpTo: "1 až {n}",
+                startQuiz: "Začať Kvíz! 🎮",
+                question: "O",
+                resultsTitle: "Kvíz Dokončený! 🎉",
+                scoreLabel: "Tvoje skóre",
+                btnMore: "Ďalších 10 otázok",
+                btnPlayAgain: "Zmeniť nastavenia"
+            }
+        };
+
+        // --- Initialization and UI Updates ---
+        function init() {
+            updateUI();
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            
+            // Update toggle buttons visual state
+            document.getElementById('lang-en').className = lang === 'en' 
+                ? "px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm" 
+                : "px-3 py-1 rounded-full font-bold text-white text-sm";
+                
+            document.getElementById('lang-sk').className = lang === 'sk' 
+                ? "px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm" 
+                : "px-3 py-1 rounded-full font-bold text-white text-sm";
+                
+            updateUI();
+        }
+
+        function updateUI() {
+            const t = translations[currentLang];
+            
+            // Static text
+            document.getElementById('app-title').innerText = t.title;
+            document.getElementById('t-select-number').innerText = t.selectNumber;
+            document.getElementById('t-select-mode').innerText = t.selectMode;
+            document.getElementById('t-start-quiz').innerText = t.startQuiz;
+            document.getElementById('t-question').innerText = t.question;
+            document.getElementById('t-results-title').innerText = t.resultsTitle;
+            document.getElementById('t-score-label').innerText = t.scoreLabel;
+            document.getElementById('t-btn-more').innerText = t.btnMore;
+            document.getElementById('t-btn-play-again').innerText = t.btnPlayAgain;
+
+            // Dynamic mode text
+            updateModeText();
+        }
+
+        function updateModeText() {
+            const t = translations[currentLang];
+            document.getElementById('mode-exact').innerText = t.modeExact.replace('{n}', currentNumber);
+            document.getElementById('mode-upto').innerText = t.modeUpTo.replace('{n}', currentNumber);
+        }
+
+        // --- Setup Logic ---
+        function selectNumber(num) {
+            currentNumber = num;
+            
+            // Visual update
+            document.querySelectorAll('.num-select').forEach(btn => {
+                btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
+            });
+            const selectedBtn = document.getElementById(`num-btn-${num}`);
+            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
+            
+            updateModeText();
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            
+            // Visual update
+            document.querySelectorAll('.mode-select').forEach(btn => {
+                btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
+            });
+            const selectedBtn = document.getElementById(`mode-${mode}`);
+            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
+        }
+
+        // --- Quiz Logic ---
+        function startQuiz() {
+            generateNewQuiz();
+            switchScreen('screen-quiz');
+        }
+
+        function generateNewQuiz(keepSameSettings = false) {
+            quizQuestions = [];
+            currentQuestionIndex = 0;
+            currentScore = 0;
+            updateScoreDisplay();
+
+            for (let i = 0; i < 10; i++) {
+                let multiplier1;
+                
+                if (currentMode === 'exact') {
+                    multiplier1 = currentNumber;
+                } else {
+                    // Up to selected number (1 to N)
+                    multiplier1 = Math.floor(Math.random() * currentNumber) + 1;
+                }
+                
+                // Second number is always 1-10 for a standard 10x10 table quiz
+                let multiplier2 = Math.floor(Math.random() * 10) + 1;
+
+                // Randomize order (e.g. 5x3 or 3x5) for better practice, except if exact mode to keep focus on the number
+                if (currentMode === 'upto' && Math.random() > 0.5) {
+                    let temp = multiplier1;
+                    multiplier1 = multiplier2;
+                    multiplier2 = temp;
+                }
+
+                quizQuestions.push({
+                    n1: multiplier1,
+                    n2: multiplier2,
+                    answer: multiplier1 * multiplier2
+                });
+            }
+            
+            if (keepSameSettings) {
+                switchScreen('screen-quiz');
+            }
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= 10) {
+                showResults();
+                return;
+            }
+            
+            currentAnswer = "";
+            updateAnswerDisplay();
+            isProcessing = false;
+
+            const q = quizQuestions[currentQuestionIndex];
+            document.getElementById('q-current').innerText = currentQuestionIndex + 1;
+            document.getElementById('eq-num1').innerText = q.n1;
+            document.getElementById('eq-num2').innerText = q.n2;
+            
+            // Reset animations
+            const eqBox = document.getElementById('equation-box');
+            eqBox.className = "bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden";
+        }
+
+        // --- Numpad Logic ---
+        function typeNum(num) {
+            if (isProcessing) return;
+            // Prevent excessively long answers
+            if (currentAnswer.length < 3) {
+                currentAnswer += num.toString();
+                updateAnswerDisplay();
+            }
+        }
+
+        function deleteNum() {
+            if (isProcessing) return;
+            if (currentAnswer.length > 0) {
+                currentAnswer = currentAnswer.slice(0, -1);
+                updateAnswerDisplay();
+            }
+        }
+
+        function updateAnswerDisplay() {
+            const display = document.getElementById('answer-display');
+            if (currentAnswer === "") {
+                display.innerText = "?";
+                display.classList.add('text-gray-300');
+                display.classList.remove('text-blue-600');
+            } else {
+                display.innerText = currentAnswer;
+                display.classList.remove('text-gray-300');
+                display.classList.add('text-blue-600');
+            }
+        }
+
+        function submitAnswer() {
+            if (isProcessing || currentAnswer === "") return;
+            isProcessing = true;
+
+            const q = quizQuestions[currentQuestionIndex];
+            const userAnswer = parseInt(currentAnswer, 10);
+            const isCorrect = (userAnswer === q.answer);
+            
+            const eqBox = document.getElementById('equation-box');
+            const overlay = document.getElementById('feedback-overlay');
+
+            if (isCorrect) {
+                currentScore++;
+                updateScoreDisplay();
+                eqBox.classList.remove('border-blue-200');
+                eqBox.classList.add('border-green-400', 'bg-green-50');
+                overlay.innerText = "⭐";
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100', 'pop');
+                
+                setTimeout(() => {
+                    overlay.classList.add('opacity-0');
+                    overlay.classList.remove('opacity-100', 'pop');
+                    currentQuestionIndex++;
+                    loadQuestion();
+                }, 800);
+            } else {
+                eqBox.classList.remove('border-blue-200');
+                eqBox.classList.add('border-red-400', 'bg-red-50', 'shake');
+                overlay.innerText = "❌";
+                overlay.classList.remove('opacity-0');
+                overlay.classList.add('opacity-100');
+
+                setTimeout(() => {
+                    overlay.classList.add('opacity-0');
+                    overlay.classList.remove('opacity-100');
+                    eqBox.classList.remove('shake', 'border-red-400', 'bg-red-50');
+                    eqBox.classList.add('border-blue-200', 'bg-white');
+                    currentAnswer = "";
+                    updateAnswerDisplay();
+                    isProcessing = false;
+                }, 800);
+            }
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('q-score').innerText = currentScore;
+        }
+
+        // --- Navigation ---
+        function showResults() {
+            document.getElementById('r-score').innerText = currentScore;
+            switchScreen('screen-results');
+        }
+
+        function goHome() {
+            switchScreen('screen-setup');
+        }
+
+        function switchScreen(screenId) {
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-setup').classList.remove('flex');
+            
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('flex');
+            
+            document.getElementById('screen-results').classList.add('hidden');
+            document.getElementById('screen-results').classList.remove('flex');
+
+            document.getElementById(screenId).classList.remove('hidden');
+            document.getElementById(screenId).classList.add('flex');
+        }
+
+        // Initialize on load
+        window.onload = init;
+
+    </script>
+</body>
+</html>
