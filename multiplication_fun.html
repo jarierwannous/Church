@@ -88,6 +88,16 @@
                     <button onclick="selectNumber(10)" id="num-btn-10" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">10</button>
                 </div>
 
+                <h2 id="t-select-op" class="text-2xl font-bold text-center text-blue-800 mb-2 mt-2">Operation:</h2>
+                <div class="flex space-x-3 mb-6">
+                    <button onclick="selectOperation('multiply')" id="op-multiply" class="op-select chunky-btn flex-1 bg-indigo-400 text-white font-bold text-lg py-3 rounded-2xl border-4 border-white chunky-btn-selected">
+                        Multiplication ✖️
+                    </button>
+                    <button onclick="selectOperation('divide')" id="op-divide" class="op-select chunky-btn flex-1 bg-pink-400 text-white font-bold text-lg py-3 rounded-2xl">
+                        Division ➗
+                    </button>
+                </div>
+
                 <h2 id="t-select-mode" class="text-2xl font-bold text-center text-blue-800 mb-4">Mode:</h2>
                 
                 <!-- Mode Selection -->
@@ -125,7 +135,7 @@
                         <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center text-5xl opacity-0 transition-opacity duration-200 z-10 pointer-events-none"></div>
                         <div class="text-5xl md:text-6xl font-black text-gray-800 flex items-center justify-center space-x-2">
                             <span id="eq-num1">5</span>
-                            <span class="text-blue-500">×</span>
+                            <span id="eq-operator" class="text-blue-500">×</span>
                             <span id="eq-num2">3</span>
                             <span class="text-purple-500">=</span>
                         </div>
@@ -186,6 +196,7 @@
         let currentLang = 'en';
         let currentNumber = 5;
         let currentMode = 'exact'; // 'exact' or 'upto'
+        let currentOperation = 'multiply'; // 'multiply' or 'divide'
         
         let quizQuestions = [];
         let currentQuestionIndex = 0;
@@ -198,6 +209,9 @@
             en: {
                 title: "Multiplication Fun! 🚀",
                 selectNumber: "Choose a Number:",
+                selectOperation: "Operation:",
+                opMultiply: "Multiplication ✖️",
+                opDivide: "Division ➗",
                 selectMode: "Mode:",
                 modeExact: "Only {n}",
                 modeUpTo: "1 to {n}",
@@ -211,6 +225,9 @@
             sk: {
                 title: "Násobenie Hrou! 🚀",
                 selectNumber: "Vyber si číslo:",
+                selectOperation: "Operácia:",
+                opMultiply: "Násobenie ✖️",
+                opDivide: "Delenie ➗",
                 selectMode: "Režim:",
                 modeExact: "Iba {n}",
                 modeUpTo: "1 až {n}",
@@ -249,6 +266,9 @@
             // Static text
             document.getElementById('app-title').innerText = t.title;
             document.getElementById('t-select-number').innerText = t.selectNumber;
+            document.getElementById('t-select-op').innerText = t.selectOperation;
+            document.getElementById('op-multiply').innerText = t.opMultiply;
+            document.getElementById('op-divide').innerText = t.opDivide;
             document.getElementById('t-select-mode').innerText = t.selectMode;
             document.getElementById('t-start-quiz').innerText = t.startQuiz;
             document.getElementById('t-question').innerText = t.question;
@@ -281,6 +301,17 @@
             updateModeText();
         }
 
+        function selectOperation(op) {
+            currentOperation = op;
+            
+            // Visual update
+            document.querySelectorAll('.op-select').forEach(btn => {
+                btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
+            });
+            const selectedBtn = document.getElementById(`op-${op}`);
+            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
+        }
+
         function selectMode(mode) {
             currentMode = mode;
             
@@ -304,31 +335,59 @@
             currentScore = 0;
             updateScoreDisplay();
 
-            for (let i = 0; i < 10; i++) {
-                let multiplier1;
+            let questionCounts = {};
+
+            while (quizQuestions.length < 10) {
+                let n1, n2, answer, qString, displayOperator;
                 
-                if (currentMode === 'exact') {
-                    multiplier1 = currentNumber;
+                if (currentOperation === 'multiply') {
+                    if (currentMode === 'exact') {
+                        n1 = currentNumber;
+                    } else {
+                        // Up to selected number (1 to N)
+                        n1 = Math.floor(Math.random() * currentNumber) + 1;
+                    }
+                    
+                    // Second number is always 1-10 for a standard 10x10 table quiz
+                    n2 = Math.floor(Math.random() * 10) + 1;
+
+                    // Randomize order (e.g. 5x3 or 3x5) for better practice
+                    if (currentMode === 'upto' && Math.random() > 0.5) {
+                        let temp = n1;
+                        n1 = n2;
+                        n2 = temp;
+                    }
+
+                    answer = n1 * n2;
+                    qString = `${n1}x${n2}`;
+                    displayOperator = '×';
                 } else {
-                    // Up to selected number (1 to N)
-                    multiplier1 = Math.floor(Math.random() * currentNumber) + 1;
-                }
-                
-                // Second number is always 1-10 for a standard 10x10 table quiz
-                let multiplier2 = Math.floor(Math.random() * 10) + 1;
-
-                // Randomize order (e.g. 5x3 or 3x5) for better practice, except if exact mode to keep focus on the number
-                if (currentMode === 'upto' && Math.random() > 0.5) {
-                    let temp = multiplier1;
-                    multiplier1 = multiplier2;
-                    multiplier2 = temp;
+                    // Division logic: base it on 10x10 multiplication table
+                    let divisor = currentMode === 'exact' ? currentNumber : Math.floor(Math.random() * currentNumber) + 1;
+                    let expectedAnswer = Math.floor(Math.random() * 10) + 1;
+                    let dividend = divisor * expectedAnswer;
+                    
+                    n1 = dividend;
+                    n2 = divisor;
+                    answer = expectedAnswer;
+                    qString = `${dividend}/${divisor}`;
+                    displayOperator = '÷';
                 }
 
-                quizQuestions.push({
-                    n1: multiplier1,
-                    n2: multiplier2,
-                    answer: multiplier1 * multiplier2
-                });
+                // Enforce max 2 repeats per specific equation
+                if (!questionCounts[qString]) {
+                    questionCounts[qString] = 0;
+                }
+
+                if (questionCounts[qString] < 2) {
+                    questionCounts[qString]++;
+                    quizQuestions.push({
+                        n1: n1,
+                        n2: n2,
+                        answer: answer,
+                        operator: displayOperator
+                    });
+                }
             }
             
             if (keepSameSettings) {
@@ -352,6 +411,7 @@
             document.getElementById('q-current').innerText = currentQuestionIndex + 1;
             document.getElementById('eq-num1').innerText = q.n1;
             document.getElementById('eq-num2').innerText = q.n2;
+            document.getElementById('eq-operator').innerText = q.operator;
             
             // Reset animations
             const eqBox = document.getElementById('equation-box');
