@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#3b82f6">
     <title>Multiplication Fun / Násobenie Hrou</title>
+    
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Multiplication%20Fun%22%2C%22short_name%22%3A%22MathFun%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f9ff%22%2C%22theme_color%22%3A%22%233b82f6%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNiODJmNiIgcng9IjIwIi8%2BPHRleHQgeD0iNTAlIiB5PSI1MCUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjUwIj7wn46vPC90ZXh0Pjwvc3ZnPg%3D%3D%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%2C%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzNiODJmNiIgcng9IjIwIi8%2BPHRleHQgeD0iNTAlIiB5PSI1MCUiIGFsaWdubWVudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjUwIj7wn46vPC90ZXh0Pjwvc3ZnPg%3D%3D%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    
     <style>
         body {
             font-family: 'Nunito', sans-serif;
@@ -52,73 +57,82 @@
             50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
+        /* Modal background */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+        }
+        
+        .locked-op {
+            opacity: 0.7;
+            filter: grayscale(0.5);
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <!-- Main App Container -->
-    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-blue-300 flex flex-col h-[90vh] max-h-[800px]">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border-4 border-blue-300 flex flex-col h-[90vh] max-h-[800px] relative">
         
-        <!-- Header / Language Toggle -->
-        <div class="bg-blue-400 p-4 flex justify-between items-center text-white">
-            <h1 id="app-title" class="text-xl font-black tracking-wide">Multiplication Fun! 🚀</h1>
-            <div class="flex space-x-2 bg-blue-500 rounded-full p-1">
-                <button onclick="setLang('en')" id="lang-en" class="px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm">EN</button>
-                <button onclick="setLang('sk')" id="lang-sk" class="px-3 py-1 rounded-full font-bold text-white text-sm">SK</button>
+        <div class="bg-blue-500 p-4 flex justify-between items-center text-white relative z-20 shadow-md">
+            <h1 id="app-title" class="text-xl font-black tracking-wide">Math Fun! 🚀</h1>
+            <div class="flex items-center space-x-3">
+                <button onclick="downloadSW()" title="Download offline support file" class="bg-blue-600 hover:bg-blue-700 p-2 rounded-full transition-colors">
+                    ☁️
+                </button>
+                <div class="flex space-x-1 bg-blue-600 rounded-full p-1">
+                    <button onclick="setLang('en')" id="lang-en" class="px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm">EN</button>
+                    <button onclick="setLang('sk')" id="lang-sk" class="px-3 py-1 rounded-full font-bold text-white text-sm hover:bg-blue-500 transition-colors">SK</button>
+                </div>
             </div>
         </div>
 
         <div class="flex-grow overflow-y-auto relative p-4 flex flex-col bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlMGYyZmUiLz48L3N2Zz4=')]">
             
-            <!-- SCREEN 1: Setup -->
-            <div id="screen-setup" class="flex flex-col h-full fade-in">
-                <h2 id="t-select-number" class="text-2xl font-bold text-center text-blue-800 mb-4">Choose a Number:</h2>
+            <div id="screen-setup" class="flex flex-col h-full fade-in pb-4">
+                <h2 id="t-select-number" class="text-xl font-bold text-center text-blue-800 mb-3 mt-1">Choose a Number:</h2>
                 
                 <!-- Number Grid -->
-                <div class="grid grid-cols-5 gap-2 mb-6">
-                    <button onclick="selectNumber(1)" id="num-btn-1" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">1</button>
-                    <button onclick="selectNumber(2)" id="num-btn-2" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">2</button>
-                    <button onclick="selectNumber(3)" id="num-btn-3" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">3</button>
-                    <button onclick="selectNumber(4)" id="num-btn-4" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">4</button>
-                    <button onclick="selectNumber(5)" id="num-btn-5" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl border-4 border-white chunky-btn-selected">5</button>
-                    <button onclick="selectNumber(6)" id="num-btn-6" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">6</button>
-                    <button onclick="selectNumber(7)" id="num-btn-7" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">7</button>
-                    <button onclick="selectNumber(8)" id="num-btn-8" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">8</button>
-                    <button onclick="selectNumber(9)" id="num-btn-9" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">9</button>
-                    <button onclick="selectNumber(10)" id="num-btn-10" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-14 rounded-2xl">10</button>
+                <div class="grid grid-cols-5 gap-2 mb-5">
+                    <button onclick="selectNumber(1)" id="num-btn-1" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">1</button>
+                    <button onclick="selectNumber(2)" id="num-btn-2" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">2</button>
+                    <button onclick="selectNumber(3)" id="num-btn-3" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">3</button>
+                    <button onclick="selectNumber(4)" id="num-btn-4" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">4</button>
+                    <button onclick="selectNumber(5)" id="num-btn-5" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl border-4 border-white chunky-btn-selected">5</button>
+                    <button onclick="selectNumber(6)" id="num-btn-6" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">6</button>
+                    <button onclick="selectNumber(7)" id="num-btn-7" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">7</button>
+                    <button onclick="selectNumber(8)" id="num-btn-8" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">8</button>
+                    <button onclick="selectNumber(9)" id="num-btn-9" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">9</button>
+                    <button onclick="selectNumber(10)" id="num-btn-10" class="num-select chunky-btn bg-yellow-400 text-yellow-900 font-black text-2xl h-12 rounded-2xl">10</button>
                 </div>
 
-                <h2 id="t-select-op" class="text-2xl font-bold text-center text-blue-800 mb-2 mt-2">Operation:</h2>
-                <div class="flex space-x-3 mb-6">
-                    <button onclick="selectOperation('multiply')" id="op-multiply" class="op-select chunky-btn flex-1 bg-indigo-400 text-white font-bold text-lg py-3 rounded-2xl border-4 border-white chunky-btn-selected">
-                        Multiplication ✖️
+                <h2 id="t-select-op" class="text-xl font-bold text-center text-blue-800 mb-2">Operation:</h2>
+                <div class="flex space-x-3 mb-5">
+                    <button onclick="selectOperation('multiply')" id="op-multiply" class="op-select chunky-btn flex-1 bg-indigo-400 text-white font-bold text-lg py-2 rounded-2xl border-4 border-white chunky-btn-selected">
+                        <span id="t-op-multiply">Multiply ✖️</span>
                     </button>
-                    <button onclick="selectOperation('divide')" id="op-divide" class="op-select chunky-btn flex-1 bg-pink-400 text-white font-bold text-lg py-3 rounded-2xl">
-                        Division ➗
+                    <button onclick="selectOperation('divide')" id="op-divide" class="op-select chunky-btn flex-1 bg-pink-400 text-white font-bold text-lg py-2 rounded-2xl locked-op relative">
+                        <span id="t-op-divide">Divide ➗</span>
+                        <div id="div-lock-icon" class="absolute -top-2 -right-2 text-2xl pop hidden">🔒</div>
                     </button>
                 </div>
 
-                <h2 id="t-select-mode" class="text-2xl font-bold text-center text-blue-800 mb-4">Mode:</h2>
-                
-                <!-- Mode Selection -->
+                <h2 id="t-select-mode" class="text-xl font-bold text-center text-blue-800 mb-2">Mode:</h2>
                 <div class="flex flex-col space-y-3 mb-auto">
-                    <button onclick="selectMode('exact')" id="mode-exact" class="mode-select chunky-btn bg-green-400 text-green-900 font-bold text-xl py-4 rounded-2xl border-4 border-white chunky-btn-selected">
+                    <button onclick="selectMode('exact')" id="mode-exact" class="mode-select chunky-btn bg-green-400 text-green-900 font-bold text-lg py-3 rounded-2xl border-4 border-white chunky-btn-selected">
                         Only 5
                     </button>
-                    <button onclick="selectMode('upto')" id="mode-upto" class="mode-select chunky-btn bg-purple-400 text-purple-900 font-bold text-xl py-4 rounded-2xl">
+                    <button onclick="selectMode('upto')" id="mode-upto" class="mode-select chunky-btn bg-purple-400 text-purple-900 font-bold text-lg py-3 rounded-2xl">
                         1 to 5
                     </button>
                 </div>
 
                 <!-- Start Button -->
-                <button onclick="startQuiz()" id="t-start-quiz" class="chunky-btn bg-red-500 text-white font-black text-2xl py-4 rounded-3xl mt-6">
+                <button onclick="startQuiz()" id="t-start-quiz" class="chunky-btn bg-red-500 text-white font-black text-2xl py-4 rounded-3xl mt-4">
                     Start Quiz! 🎮
                 </button>
             </div>
 
-            <!-- SCREEN 2: Quiz -->
             <div id="screen-quiz" class="hidden flex-col h-full fade-in">
-                
                 <!-- Progress and Score -->
                 <div class="flex justify-between items-center mb-4">
                     <div class="bg-blue-100 text-blue-800 font-bold px-4 py-2 rounded-xl border-2 border-blue-200">
@@ -130,9 +144,9 @@
                 </div>
 
                 <!-- Equation Area -->
-                <div class="flex-grow flex flex-col items-center justify-center mb-4">
-                    <div id="equation-box" class="bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden">
-                        <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center text-5xl opacity-0 transition-opacity duration-200 z-10 pointer-events-none"></div>
+                <div class="flex-grow flex flex-col items-center justify-center mb-2">
+                    <div id="equation-box" class="bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden transition-colors duration-200">
+                        <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center text-6xl opacity-0 transition-opacity duration-200 z-10 pointer-events-none"></div>
                         <div class="text-5xl md:text-6xl font-black text-gray-800 flex items-center justify-center space-x-2">
                             <span id="eq-num1">5</span>
                             <span id="eq-operator" class="text-blue-500">×</span>
@@ -146,8 +160,7 @@
                 </div>
 
                 <!-- Custom Numpad -->
-                <div class="grid grid-cols-3 gap-2 mt-auto">
-                    <!-- Numbers -->
+                <div class="grid grid-cols-3 gap-2 mt-auto pb-2">
                     <button onclick="typeNum(1)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">1</button>
                     <button onclick="typeNum(2)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">2</button>
                     <button onclick="typeNum(3)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">3</button>
@@ -158,7 +171,6 @@
                     <button onclick="typeNum(8)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">8</button>
                     <button onclick="typeNum(9)" class="chunky-btn bg-white border-2 border-gray-200 text-gray-700 font-black text-3xl py-3 rounded-2xl">9</button>
                     
-                    <!-- Actions -->
                     <button onclick="deleteNum()" class="chunky-btn bg-red-100 border-2 border-red-300 text-red-600 font-black text-2xl py-3 rounded-2xl flex items-center justify-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" /></svg>
                     </button>
@@ -169,13 +181,23 @@
                 </div>
             </div>
 
-            <!-- SCREEN 3: Results -->
-            <div id="screen-results" class="hidden flex-col h-full justify-center fade-in text-center">
-                <div class="text-6xl mb-4">🏆</div>
+            <div id="screen-results" class="hidden flex-col h-full justify-center fade-in text-center pb-4">
+                <div class="text-6xl mb-4" id="r-icon">🏆</div>
                 <h2 id="t-results-title" class="text-3xl font-black text-blue-800 mb-2">Quiz Complete!</h2>
-                <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-blue-100 mb-8 inline-block mx-auto">
+                
+                <!-- Score Box -->
+                <div class="bg-white rounded-3xl p-6 shadow-md border-2 border-blue-100 mb-4 inline-block mx-auto w-full max-w-[250px]">
                     <p class="text-gray-500 font-bold mb-1" id="t-score-label">Your Score</p>
                     <p class="text-5xl font-black text-green-500"><span id="r-score">10</span> <span class="text-3xl text-gray-400">/ 10</span></p>
+                </div>
+
+                <!-- Progress Tracker (Shows up for perfect scores) -->
+                <div id="r-progress-box" class="hidden bg-yellow-100 border-2 border-yellow-300 rounded-2xl p-4 mb-4 shadow-sm w-full">
+                    <p id="r-progress-text" class="text-yellow-800 font-bold text-sm md:text-base"></p>
+                    <!-- Visual Progress Bar -->
+                    <div class="w-full bg-yellow-200 rounded-full h-3 mt-2 overflow-hidden border border-yellow-300">
+                        <div id="r-progress-bar" class="bg-yellow-500 h-3 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
                 </div>
                 
                 <div class="flex flex-col space-y-4 w-full mt-auto">
@@ -187,6 +209,29 @@
                     </button>
                 </div>
             </div>
+            
+            <!-- PWA Setup Modal -->
+            <div id="pwa-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 fade-in modal-overlay">
+                <div class="bg-white rounded-3xl shadow-2xl p-6 border-4 border-blue-300 text-center w-full max-w-sm">
+                    <div class="text-5xl mb-2">☁️</div>
+                    <h3 class="text-xl font-black text-blue-800 mb-2" id="t-pwa-title">Offline Support</h3>
+                    <p class="text-gray-600 mb-4 text-sm" id="t-pwa-desc">To install this app on your device for offline use, you need a Service Worker file. Click below to download it, then place it next to this index.html file on your server!</p>
+                    <div class="flex flex-col space-y-2">
+                        <button onclick="triggerSWDownload()" class="chunky-btn bg-green-500 text-white font-bold py-3 rounded-xl" id="t-pwa-btn">Download sw.js</button>
+                        <button onclick="closeModal('pwa-modal')" class="chunky-btn bg-gray-200 text-gray-700 font-bold py-3 rounded-xl" id="t-pwa-close">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Custom App Alert Modal (For Locks) -->
+            <div id="alert-modal" class="hidden absolute inset-0 z-50 flex items-center justify-center p-4 fade-in modal-overlay">
+                <div class="bg-white rounded-3xl shadow-2xl p-6 border-4 border-red-300 text-center w-full max-w-sm">
+                    <div class="text-5xl mb-2 pop" id="alert-icon">🔒</div>
+                    <h3 class="text-2xl font-black text-red-600 mb-2" id="alert-title">Title</h3>
+                    <p class="text-gray-700 mb-6 font-bold whitespace-pre-line" id="alert-desc">Message</p>
+                    <button onclick="closeModal('alert-modal')" class="chunky-btn w-full bg-blue-500 hover:bg-blue-600 text-white font-black text-xl py-3 rounded-2xl" id="t-alert-btn">OK</button>
+                </div>
+            </div>
 
         </div>
     </div>
@@ -195,8 +240,8 @@
         // --- State ---
         let currentLang = 'en';
         let currentNumber = 5;
-        let currentMode = 'exact'; // 'exact' or 'upto'
-        let currentOperation = 'multiply'; // 'multiply' or 'divide'
+        let currentMode = 'exact'; 
+        let currentOperation = 'multiply'; 
         
         let quizQuestions = [];
         let currentQuestionIndex = 0;
@@ -204,14 +249,28 @@
         let currentAnswer = "";
         let isProcessing = false;
 
+        const REQUIRED_PERFECT_QUIZZES = 10;
+
+        // Progress Tracking Data Structure
+        // tracks perfect quizzes (10/10) per mode and number.
+        let progressData = {
+            exact: {},
+            upto: {}
+        };
+        // Init with 0s
+        for(let i=1; i<=10; i++) {
+            progressData.exact[i] = 0;
+            progressData.upto[i] = 0;
+        }
+
         // --- Translations ---
         const translations = {
             en: {
-                title: "Multiplication Fun! 🚀",
+                title: "Math Fun! 🚀",
                 selectNumber: "Choose a Number:",
                 selectOperation: "Operation:",
-                opMultiply: "Multiplication ✖️",
-                opDivide: "Division ➗",
+                opMultiply: "Multiply ✖️",
+                opDivide: "Divide ➗",
                 selectMode: "Mode:",
                 modeExact: "Only {n}",
                 modeUpTo: "1 to {n}",
@@ -220,10 +279,21 @@
                 resultsTitle: "Quiz Complete! 🎉",
                 scoreLabel: "Your Score",
                 btnMore: "10 More Questions",
-                btnPlayAgain: "Change Settings"
+                btnPlayAgain: "Change Settings",
+                pwaTitle: "Offline Support",
+                pwaDesc: "To install this app on your home screen for offline use, you need a Service Worker. Click below to download 'sw.js', and place it in the same folder as this HTML file on your web server!",
+                pwaBtn: "Download sw.js",
+                pwaClose: "Close",
+                alertOk: "Got it! 👍",
+                // Progression Text
+                lockedTitle: "Division Locked! 🔒",
+                lockedMsg: "To unlock division for this level, get a PERFECT score (10/10) in Multiplication first!\n\nYour progress: {p}/10 perfect quizzes.",
+                perfectTitle: "Awesome Job! 🌟",
+                progressMsg: "Perfect! {p}/10 completed to unlock Division!",
+                unlockedMsg: "Division Unlocked for this level! 🎉 You did it!"
             },
             sk: {
-                title: "Násobenie Hrou! 🚀",
+                title: "Matika Hrou! 🚀",
                 selectNumber: "Vyber si číslo:",
                 selectOperation: "Operácia:",
                 opMultiply: "Násobenie ✖️",
@@ -236,39 +306,132 @@
                 resultsTitle: "Kvíz Dokončený! 🎉",
                 scoreLabel: "Tvoje skóre",
                 btnMore: "Ďalších 10 otázok",
-                btnPlayAgain: "Zmeniť nastavenia"
+                btnPlayAgain: "Zmeniť nastavenia",
+                pwaTitle: "Podpora Offline",
+                pwaDesc: "Pre inštaláciu aplikácie na plochu pre použitie bez internetu potrebujete súbor Service Worker. Kliknite nižšie na stiahnutie 'sw.js' a uložte ho do rovnakého priečinka ako tento HTML súbor!",
+                pwaBtn: "Stiahnuť sw.js",
+                pwaClose: "Zavrieť",
+                alertOk: "Rozumiem! 👍",
+                // Progression Text
+                lockedTitle: "Delenie je zamknuté! 🔒",
+                lockedMsg: "Aby si odomkol delenie pre túto úroveň, získaj najskôr PLNE počet bodov (10/10) v Násobení!\n\nTvoj postup: {p}/10 perfektných kvízov.",
+                perfectTitle: "Výborná práca! 🌟",
+                progressMsg: "Perfektne! {p}/10 hotovo na odomknutie Delenia!",
+                unlockedMsg: "Delenie pre túto úroveň je ODOMKNUTÉ! 🎉 Zvládol si to!"
             }
         };
 
-        // --- Initialization and UI Updates ---
+        // --- STREAMING_CHUNK:Local Storage & Progress Data ---
+        function loadProgress() {
+            const saved = localStorage.getItem('mathFunProgress');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.exact && parsed.upto) {
+                        progressData = parsed;
+                    }
+                } catch (e) {
+                    console.error("Error loading progress", e);
+                }
+            }
+        }
+
+        function saveProgress() {
+            localStorage.setItem('mathFunProgress', JSON.stringify(progressData));
+        }
+
+        // --- STREAMING_CHUNK:PWA Service Worker Logic ---
+        const swFileCode = `
+const CACHE_NAME = 'math-fun-v2';
+const urlsToCache = [
+    './',
+    './index.html',
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap'
+];
+
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    );
+});
+
+self.addEventListener('fetch', event => {
+    event.respondWith(
+        caches.match(event.request).then(response => {
+            return response || fetch(event.request).then(fetchRes => {
+                return caches.open(CACHE_NAME).then(cache => {
+                    if (event.request.url.startsWith('http')) {
+                        cache.put(event.request, fetchRes.clone());
+                    }
+                    return fetchRes;
+                });
+            });
+        }).catch(() => {})
+    );
+});
+`;
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => {
+                    console.log('SW not found. Use cloud button.');
+                });
+            });
+        }
+
+        function downloadSW() {
+            document.getElementById('pwa-modal').classList.remove('hidden');
+        }
+
+        function triggerSWDownload() {
+            const blob = new Blob([swFileCode.trim()], { type: 'application/javascript' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'sw.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            closeModal('pwa-modal');
+        }
+        
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+        
+        function showAppAlert(title, desc) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-desc').innerText = desc;
+            document.getElementById('alert-modal').classList.remove('hidden');
+        }
+
+        // --- STREAMING_CHUNK:UI Updates and Language ---
         function init() {
+            loadProgress();
             updateUI();
+            checkLockStatus();
         }
 
         function setLang(lang) {
             currentLang = lang;
-            
-            // Update toggle buttons visual state
             document.getElementById('lang-en').className = lang === 'en' 
                 ? "px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm" 
-                : "px-3 py-1 rounded-full font-bold text-white text-sm";
+                : "px-3 py-1 rounded-full font-bold text-white text-sm hover:bg-blue-500 transition-colors";
                 
             document.getElementById('lang-sk').className = lang === 'sk' 
                 ? "px-3 py-1 rounded-full font-bold bg-white text-blue-500 shadow-sm text-sm" 
-                : "px-3 py-1 rounded-full font-bold text-white text-sm";
+                : "px-3 py-1 rounded-full font-bold text-white text-sm hover:bg-blue-500 transition-colors";
                 
             updateUI();
         }
 
         function updateUI() {
             const t = translations[currentLang];
-            
-            // Static text
             document.getElementById('app-title').innerText = t.title;
             document.getElementById('t-select-number').innerText = t.selectNumber;
             document.getElementById('t-select-op').innerText = t.selectOperation;
-            document.getElementById('op-multiply').innerText = t.opMultiply;
-            document.getElementById('op-divide').innerText = t.opDivide;
+            document.getElementById('t-op-multiply').innerText = t.opMultiply;
+            document.getElementById('t-op-divide').innerText = t.opDivide;
             document.getElementById('t-select-mode').innerText = t.selectMode;
             document.getElementById('t-start-quiz').innerText = t.startQuiz;
             document.getElementById('t-question').innerText = t.question;
@@ -276,9 +439,15 @@
             document.getElementById('t-score-label').innerText = t.scoreLabel;
             document.getElementById('t-btn-more').innerText = t.btnMore;
             document.getElementById('t-btn-play-again').innerText = t.btnPlayAgain;
+            
+            document.getElementById('t-pwa-title').innerText = t.pwaTitle;
+            document.getElementById('t-pwa-desc').innerText = t.pwaDesc;
+            document.getElementById('t-pwa-btn').innerText = t.pwaBtn;
+            document.getElementById('t-pwa-close').innerText = t.pwaClose;
+            document.getElementById('t-alert-btn').innerText = t.alertOk;
 
-            // Dynamic mode text
             updateModeText();
+            checkLockStatus();
         }
 
         function updateModeText() {
@@ -287,44 +456,61 @@
             document.getElementById('mode-upto').innerText = t.modeUpTo.replace('{n}', currentNumber);
         }
 
-        // --- Setup Logic ---
+        // --- STREAMING_CHUNK:Setup Logic and Lock validation ---
+        function checkLockStatus() {
+            const perfects = progressData[currentMode][currentNumber];
+            const divBtn = document.getElementById('op-divide');
+            const lockIcon = document.getElementById('div-lock-icon');
+
+            if (perfects < REQUIRED_PERFECT_QUIZZES) {
+                divBtn.classList.add('locked-op');
+                lockIcon.classList.remove('hidden');
+            } else {
+                divBtn.classList.remove('locked-op');
+                lockIcon.classList.add('hidden');
+            }
+        }
+
         function selectNumber(num) {
             currentNumber = num;
-            
-            // Visual update
             document.querySelectorAll('.num-select').forEach(btn => {
                 btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
             });
-            const selectedBtn = document.getElementById(`num-btn-${num}`);
-            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
-            
+            document.getElementById(`num-btn-${num}`).classList.add('chunky-btn-selected', 'border-4', 'border-white');
             updateModeText();
+            checkLockStatus();
         }
 
         function selectOperation(op) {
+            // Validation happens on START button to allow clicking to read the message.
             currentOperation = op;
-            
-            // Visual update
             document.querySelectorAll('.op-select').forEach(btn => {
                 btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
             });
-            const selectedBtn = document.getElementById(`op-${op}`);
-            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
+            document.getElementById(`op-${op}`).classList.add('chunky-btn-selected', 'border-4', 'border-white');
         }
 
         function selectMode(mode) {
             currentMode = mode;
-            
-            // Visual update
             document.querySelectorAll('.mode-select').forEach(btn => {
                 btn.classList.remove('chunky-btn-selected', 'border-4', 'border-white');
             });
-            const selectedBtn = document.getElementById(`mode-${mode}`);
-            selectedBtn.classList.add('chunky-btn-selected', 'border-4', 'border-white');
+            document.getElementById(`mode-${mode}`).classList.add('chunky-btn-selected', 'border-4', 'border-white');
+            checkLockStatus();
         }
 
-        // --- Quiz Logic ---
+        // --- STREAMING_CHUNK:Quiz Generation logic ---
         function startQuiz() {
+            const t = translations[currentLang];
+            // Check division lock
+            if (currentOperation === 'divide') {
+                const perfects = progressData[currentMode][currentNumber];
+                if (perfects < REQUIRED_PERFECT_QUIZZES) {
+                    showAppAlert(t.lockedTitle, t.lockedMsg.replace('{p}', perfects));
+                    return; // Prevent starting
+                }
+            }
+
             generateNewQuiz();
             switchScreen('screen-quiz');
         }
@@ -341,28 +527,17 @@
                 let n1, n2, answer, qString, displayOperator;
                 
                 if (currentOperation === 'multiply') {
-                    if (currentMode === 'exact') {
-                        n1 = currentNumber;
-                    } else {
-                        // Up to selected number (1 to N)
-                        n1 = Math.floor(Math.random() * currentNumber) + 1;
-                    }
-                    
-                    // Second number is always 1-10 for a standard 10x10 table quiz
+                    n1 = currentMode === 'exact' ? currentNumber : Math.floor(Math.random() * currentNumber) + 1;
                     n2 = Math.floor(Math.random() * 10) + 1;
 
-                    // Randomize order (e.g. 5x3 or 3x5) for better practice
                     if (currentMode === 'upto' && Math.random() > 0.5) {
-                        let temp = n1;
-                        n1 = n2;
-                        n2 = temp;
+                        let temp = n1; n1 = n2; n2 = temp;
                     }
 
                     answer = n1 * n2;
                     qString = `${n1}x${n2}`;
                     displayOperator = '×';
                 } else {
-                    // Division logic: base it on 10x10 multiplication table
                     let divisor = currentMode === 'exact' ? currentNumber : Math.floor(Math.random() * currentNumber) + 1;
                     let expectedAnswer = Math.floor(Math.random() * 10) + 1;
                     let dividend = divisor * expectedAnswer;
@@ -374,18 +549,12 @@
                     displayOperator = '÷';
                 }
 
-                // Enforce max 2 repeats per specific equation
-                if (!questionCounts[qString]) {
-                    questionCounts[qString] = 0;
-                }
+                if (!questionCounts[qString]) questionCounts[qString] = 0;
 
                 if (questionCounts[qString] < 2) {
                     questionCounts[qString]++;
                     quizQuestions.push({
-                        n1: n1,
-                        n2: n2,
-                        answer: answer,
-                        operator: displayOperator
+                        n1: n1, n2: n2, answer: answer, operator: displayOperator
                     });
                 }
             }
@@ -393,10 +562,10 @@
             if (keepSameSettings) {
                 switchScreen('screen-quiz');
             }
-            
             loadQuestion();
         }
 
+        // --- STREAMING_CHUNK:Gameplay loop ---
         function loadQuestion() {
             if (currentQuestionIndex >= 10) {
                 showResults();
@@ -413,15 +582,12 @@
             document.getElementById('eq-num2').innerText = q.n2;
             document.getElementById('eq-operator').innerText = q.operator;
             
-            // Reset animations
             const eqBox = document.getElementById('equation-box');
-            eqBox.className = "bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden";
+            eqBox.className = "bg-white border-4 border-blue-200 w-full py-8 rounded-3xl shadow-inner text-center relative overflow-hidden transition-colors duration-200";
         }
 
-        // --- Numpad Logic ---
         function typeNum(num) {
             if (isProcessing) return;
-            // Prevent excessively long answers
             if (currentAnswer.length < 3) {
                 currentAnswer += num.toString();
                 updateAnswerDisplay();
@@ -498,13 +664,57 @@
             document.getElementById('q-score').innerText = currentScore;
         }
 
-        // --- Navigation ---
+        // --- STREAMING_CHUNK:Results and Progress Evaluation ---
         function showResults() {
+            const t = translations[currentLang];
             document.getElementById('r-score').innerText = currentScore;
+            
+            const progBox = document.getElementById('r-progress-box');
+            const progText = document.getElementById('r-progress-text');
+            const progBar = document.getElementById('r-progress-bar');
+            progBox.classList.add('hidden'); // Hide by default
+            
+            // Check for progress update
+            if (currentOperation === 'multiply' && currentScore === 10) {
+                let currentPerfects = progressData[currentMode][currentNumber];
+                
+                if (currentPerfects < REQUIRED_PERFECT_QUIZZES) {
+                    currentPerfects++;
+                    progressData[currentMode][currentNumber] = currentPerfects;
+                    saveProgress();
+                    
+                    progBox.classList.remove('hidden');
+                    
+                    if (currentPerfects >= REQUIRED_PERFECT_QUIZZES) {
+                        progText.innerText = t.unlockedMsg;
+                        progBox.classList.replace('bg-yellow-100', 'bg-green-100');
+                        progBox.classList.replace('border-yellow-300', 'border-green-300');
+                        progText.classList.replace('text-yellow-800', 'text-green-800');
+                        progBar.classList.replace('bg-yellow-500', 'bg-green-500');
+                    } else {
+                        progText.innerText = t.progressMsg.replace('{p}', currentPerfects);
+                        // reset styling if they play again
+                        progBox.classList.replace('bg-green-100', 'bg-yellow-100');
+                        progBox.classList.replace('border-green-300', 'border-yellow-300');
+                        progText.classList.replace('text-green-800', 'text-yellow-800');
+                        progBar.classList.replace('bg-green-500', 'bg-yellow-500');
+                    }
+                    
+                    // Animate bar width
+                    setTimeout(() => {
+                        progBar.style.width = `${(currentPerfects / REQUIRED_PERFECT_QUIZZES) * 100}%`;
+                    }, 300);
+                }
+            } else {
+                // If they score <10 on multiply and haven't unlocked, maybe tell them?
+                // Kept silent to not discourage kids. Only reward perfects.
+            }
+
             switchScreen('screen-results');
         }
 
         function goHome() {
+            checkLockStatus(); // Re-evaluate lock before showing home
             switchScreen('screen-setup');
         }
 
@@ -522,9 +732,7 @@
             document.getElementById(screenId).classList.add('flex');
         }
 
-        // Initialize on load
         window.onload = init;
-
     </script>
 </body>
 </html>
