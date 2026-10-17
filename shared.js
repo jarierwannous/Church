@@ -1,12 +1,49 @@
+// Konfigurácia je v samostatnom config.js, ktorý sa načíta ešte pred týmto modulom.
+// Ak sa config.js nenačíta (napr. chýba na GitHub Pages), zobrazíme konkrétnu príčinu.
+const configFileLoaded = Object.prototype.hasOwnProperty.call(window, 'CHURCH_CONFIG');
 const settings = window.CHURCH_CONFIG || {};
-export const configured = /^https:\/\/.+\.supabase\.co\/?$/.test(settings.SUPABASE_URL || '') && Boolean(settings.SUPABASE_PUBLISHABLE_KEY?.trim());
+const projectUrl = String(settings.SUPABASE_URL || '').trim();
+// Podpora novšieho publishable key aj staršieho anon key.
+const publicKey = String(settings.SUPABASE_PUBLISHABLE_KEY || settings.SUPABASE_ANON_KEY || '').trim();
+function isProjectUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && Boolean(url.hostname) &&
+      url.pathname === '/' && !url.search && !url.hash && !url.username && !url.password;
+  } catch { return false; }
+}
+function configurationProblem() {
+  if (!configFileLoaded) return 'Prehliadač nenačítal súbor config.js. Skontrolujte jeho umiestnenie na serveri a názov súboru.';
+  if (!projectUrl) return 'V súbore config.js chýba SUPABASE_URL. Doplňte URL projektu zo Supabase.';
+  if (!publicKey) return 'V súbore config.js chýba SUPABASE_PUBLISHABLE_KEY (alebo SUPABASE_ANON_KEY).';
+  if (!isProjectUrl(projectUrl)) return 'SUPABASE_URL nie je platná HTTPS adresa projektu. Použite Project URL, nie odkaz na Supabase Dashboard ani /rest/v1.';
+  if (/^sb_secret_/i.test(publicKey)) return 'Do config.js ste vložili tajný kľúč. Okamžite ho zneplatnite v Supabase a použite publishable/anon key.';
+  if (/VAS_PROJEKT|YOUR_PROJECT|example|tvoj-projekt/i.test(projectUrl) || /^sb_publishable_\.\.\.$/.test(publicKey)) return 'V config.js sú ešte vzorové hodnoty. Nahraďte ich údajmi vlastného projektu.';
+  return '';
+}
+export const configProblem = configurationProblem();
+export const configured = !configProblem;
 export const APP_NAME = 'Kresťanský zbor Trenčín';
 const demoKey = 'kzt-kalendar-demo-v2';
 let pendingClient;
 export async function getClient() {
   if (!configured) return null;
-  if (!pendingClient) pendingClient = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient}) => createClient(settings.SUPABASE_URL, settings.SUPABASE_PUBLISHABLE_KEY, {auth: {persistSession: true, autoRefreshToken: true}}));
+  if (!pendingClient) pendingClient = import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm').then(({createClient}) =>
+    createClient(projectUrl.replace(/\/$/, ''), publicKey, {auth: {persistSession: true, autoRefreshToken: true}}));
   return pendingClient;
+}
+// Jednoduchá viditeľná diagnostika, bez zobrazovania kľúča.
+export function showConfigProblem(bannerId) {
+  if (configured) return;
+  const banner = document.getElementById(bannerId);
+  if (!banner) return;
+  banner.hidden = false;
+  const detail = document.createElement('div');
+  detail.className = 'shell';
+  detail.style.cssText = 'padding-top:0;padding-bottom:10px;font-size:0.9em;';
+  detail.textContent = `Dôvod: ${configProblem}`;
+  banner.append(detail);
+  console.warn('Konfigurácia kalendára:', configProblem);
 }
 export function localDate(date) {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
