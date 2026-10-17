@@ -1,11 +1,11 @@
-import {configured,fetchEvents,parseDate,localDate,formatDate,formatShortDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js';
+import {configured,showConfigProblem,fetchEvents,parseDate,localDate,formatDate,formatShortDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js';
 const $ = sel => document.querySelector(sel);
 const state={events:[],year:new Date().getFullYear(),month:new Date().getMonth(),filter:'all',query:'',selectedDay:null};
 const monthFormat = new Intl.DateTimeFormat('sk-SK',{month:'long',year:'numeric'});
 const weekDay = new Intl.DateTimeFormat('sk-SK',{weekday:'short'});
 const todayIso = localDate(new Date());
 $('#year').textContent=new Date().getFullYear();
-if(!configured) $('#demo-banner').hidden=false;
+showConfigProblem('demo-banner');
 function matches(e){const q=state.query.toLocaleLowerCase('sk-SK');return (state.filter==='all'||e.event_type===state.filter)&&(!q || [niceTitle(e),e.title,e.description,e.responsible_person,e.sermon_author,e.sermon_title,e.sermon_description,e.moderator_name,e.besiedka_leader,e.worship_leader].filter(Boolean).some(v=>String(v).toLocaleLowerCase('sk-SK').includes(q)));}
 function eventDateTime(e){return `${e.event_date}T${timeText(e.start_time)||'00:00'}`;}
 function readableDate(e){return `${formatDate(e.event_date)} · ${timeText(e.start_time)}${e.end_time ? ` – ${timeText(e.end_time)}` : ''}`;}
