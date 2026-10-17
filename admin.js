@@ -1,9 +1,9 @@
-import {configured,getClient,fetchEvents,putEvent,removeEvent,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js';
+import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js';
 const $=selector=>document.querySelector(selector);
 const form=$('#event-form');
 let list=[];let editingId=null;let type='service';let busy=false;let signedInUser=null;
 $('#year').textContent=new Date().getFullYear();
-if(!configured)$('#admin-demo-banner').hidden=false;
+showConfigProblem('admin-demo-banner');
 function nextSunday(){const today=new Date();return localDate(addDays(today,(7-today.getDay())%7));}
 function setType(next){type=next;const service=next==='service';$('#choose-service').classList.toggle('selected',service);$('#choose-general').classList.toggle('selected',!service);$('#choose-service').setAttribute('aria-pressed',String(service));$('#choose-general').setAttribute('aria-pressed',String(!service));$('#service-fields').hidden=!service;$('#general-fields').hidden=service;['#sermon-author','#sermon-title','#sermon-desc','#moderator-name','#besiedka-leader','#worship-leader'].forEach(id=>$(id).required=service);['#general-title','#general-responsible','#general-desc'].forEach(id=>$(id).required=!service);if(!editingId && service && $('#event-date').value && new Date(`${$('#event-date').value}T12:00:00`).getDay()!==0)$('#event-date').value=nextSunday();}
 function clearForm(){editingId=null;form.reset();$('#event-date').value=nextSunday();$('#event-time').value='';$('#event-end').value='';$('#event-published').checked=true;$('#editor-title').textContent='Nová udalosť';$('#delete-event').hidden=true;$('#form-error').textContent='';setType('service');drawList();}
