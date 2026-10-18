@@ -25,6 +25,7 @@ export const configProblem = configurationProblem();
 export const configured = !configProblem;
 export const APP_NAME = 'Kresťanský zbor Trenčín';
 const demoKey = 'kzt-kalendar-demo-v2';
+const besiedkaDemoKey = 'kzt-besiedka-demo-v1';
 let pendingClient;
 export async function getClient() {
   if (!configured) return null;
@@ -54,7 +55,7 @@ export function addDays(date, delta) { const d = new Date(date); d.setDate(d.get
 export function formatDate(iso, options={weekday:'long',day:'numeric',month:'long',year:'numeric'}) { return new Intl.DateTimeFormat('sk-SK',options).format(parseDate(iso)); }
 export function formatShortDate(iso) { return new Intl.DateTimeFormat('sk-SK',{day:'numeric',month:'short'}).format(parseDate(iso)); }
 export function timeText(time) { return time ? time.slice(0,5) : ''; }
-export function niceTitle(e) { return e.event_type === 'service' ? 'Nedeľná bohoslužba' : e.title; }
+export function niceTitle(e) { return e.event_type === 'service' ? (e.is_cancelled ? 'Bohoslužba zrušená' : 'Nedeľná bohoslužba') : e.title; }
 export function escapeHTML(text='') { return String(text ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 export function sortEvents(items) { return [...items].sort((a,b)=> `${a.event_date}T${a.start_time||'00:00'}`.localeCompare(`${b.event_date}T${b.start_time||'00:00'}`)); }
 function demoSeeds() {
@@ -110,4 +111,51 @@ export function showToast(message,kind='success') {
   if (!el) { el=document.createElement('div'); el.id='app-toast'; el.className='toast'; el.setAttribute('role','status'); document.body.appendChild(el); }
   el.textContent=message; el.className=`toast show ${kind}`;
   clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>el.classList.remove('show'),4100);
+}
+
+// Besiedka má vlastné záznamy aj oprávnenia; nezávisí od publikovania kázne.
+function demoBesiedka() {
+  try { const saved=JSON.parse(localStorage.getItem(besiedkaDemoKey)); if (Array.isArray(saved)) return saved; } catch {}
+  const initial=demoGet().filter(e=>e.event_type==='service' && e.besiedka_leader).map(e=>({event_date:e.event_date,responsible_person:e.besiedka_leader}));
+  localStorage.setItem(besiedkaDemoKey,JSON.stringify(initial));
+  return initial;
+}
+export async function fetchBesiedka() {
+  if (!configured) return demoBesiedka();
+  const client=await getClient();
+  const {data,error}=await client.from('besiedka_assignments').select('event_date,responsible_person').order('event_date',{ascending:true});
+  if(error) throw error;
+  return data||[];
+}
+export async function putBesiedka(event_date,responsible_person) {
+  const person=String(responsible_person||'').trim();
+  if(!configured) {
+    const items=demoBesiedka().filter(e=>e.event_date!==event_date);
+    if(person)items.push({event_date,responsible_person:person});
+    localStorage.setItem(besiedkaDemoKey,JSON.stringify(items));return;
+  }
+  const client=await getClient();
+  if(!person){const {error}=await client.from('besiedka_assignments').delete().eq('event_date',event_date);if(error)throw error;return;}
+  const {data:{user},error:userError}=await client.auth.getUser();
+  if(userError||!user)throw new Error('Pre uloženie besiedky sa prihláste.');
+  const {error}=await client.from('besiedka_assignments').upsert({event_date,responsible_person:person,updated_by:user.id},{onConflict:'event_date'});
+  if(error)throw error;
+}
+export function combineWithSundays(rawEvents, besiedka, firstDate, lastDate) {
+  const services=new Map(rawEvents.filter(e=>e.event_type==='service').map(e=>[e.event_date,e]));
+  const assignments=new Map(besiedka.map(e=>[e.event_date,e.responsible_person]));
+  const other=rawEvents.filter(e=>e.event_type!=='service');
+  const cursor=parseDate(firstDate); const end=parseDate(lastDate);
+  // Limitne kontrolovaný interval, bez generovania do nekonečna.
+  while(cursor<=end){
+    if(cursor.getDay()===0){
+      const day=localDate(cursor);
+      const base=services.get(day)||{id:`auto-service-${day}`,event_type:'service',event_date:day,start_time:'10:00',end_time:null,is_published:true,is_cancelled:false,sermon_author:'',sermon_title:'',sermon_description:'',moderator_name:'',worship_leader:''};
+      other.push({...base,start_time:'10:00',besiedka_leader:assignments.get(day)||''});
+      services.delete(day);
+    }
+    cursor.setDate(cursor.getDate()+1);
+  }
+  for(const value of services.values())other.push({...value,start_time:'10:00',besiedka_leader:assignments.get(value.event_date)||''});
+  return sortEvents(other);
 }

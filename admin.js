@@ -1,34 +1,123 @@
-import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js';
-const $=selector=>document.querySelector(selector);
-const form=$('#event-form');
-let list=[];let editingId=null;let type='service';let busy=false;let signedInUser=null;
-$('#year').textContent=new Date().getFullYear();
-showConfigProblem('admin-demo-banner');
-function nextSunday(){const today=new Date();return localDate(addDays(today,(7-today.getDay())%7));}
-function setType(next){type=next;const service=next==='service';$('#choose-service').classList.toggle('selected',service);$('#choose-general').classList.toggle('selected',!service);$('#choose-service').setAttribute('aria-pressed',String(service));$('#choose-general').setAttribute('aria-pressed',String(!service));$('#service-fields').hidden=!service;$('#general-fields').hidden=service;['#sermon-author','#sermon-title','#sermon-desc','#moderator-name','#besiedka-leader','#worship-leader'].forEach(id=>$(id).required=service);['#general-title','#general-responsible','#general-desc'].forEach(id=>$(id).required=!service);if(!editingId && service && $('#event-date').value && new Date(`${$('#event-date').value}T12:00:00`).getDay()!==0)$('#event-date').value=nextSunday();}
-function clearForm(){editingId=null;form.reset();$('#event-date').value=nextSunday();$('#event-time').value='';$('#event-end').value='';$('#event-published').checked=true;$('#editor-title').textContent='Nová udalosť';$('#delete-event').hidden=true;$('#form-error').textContent='';setType('service');drawList();}
-function fillForm(e){editingId=e.id;$('#editor-title').textContent='Upraviť udalosť';setType(e.event_type);$('#event-date').value=e.event_date;$('#event-time').value=timeText(e.start_time);$('#event-end').value=timeText(e.end_time);$('#sermon-author').value=e.sermon_author||'';$('#sermon-title').value=e.sermon_title||'';$('#sermon-desc').value=e.sermon_description||'';$('#moderator-name').value=e.moderator_name||'';$('#besiedka-leader').value=e.besiedka_leader||'';$('#worship-leader').value=e.worship_leader||'';$('#general-title').value=e.title||'';$('#general-responsible').value=e.responsible_person||'';$('#general-desc').value=e.description||'';$('#event-published').checked=Boolean(e.is_published);$('#delete-event').hidden=false;$('#form-error').textContent='';drawList();if(window.matchMedia('(max-width:850px)').matches)$('#editor-card').scrollIntoView({behavior:'smooth',block:'start'});}
+import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=2';
+const $=sel=>document.querySelector(sel),form=$('#event-form');
+let events=[],besiedka=[],editingId=null,type='service',busy=false,signedInUser=null,permissions={can_manage_events:true,can_manage_besiedka:true};
+$('#year').textContent=new Date().getFullYear();showConfigProblem('admin-demo-banner');
+function nextSunday(week=0){const today=new Date();return localDate(addDays(today,(7-today.getDay())%7+7*week));}
+function sundayDate(iso){return Boolean(iso)&&new Date(`${iso}T12:00:00`).getDay()===0;}
 function value(id){return $(id).value.trim();}
-function payload(){const service=type==='service';return {event_type:type,event_date:value('#event-date'),start_time:value('#event-time'),end_time:value('#event-end')||null,is_published:$('#event-published').checked,title:service?null:value('#general-title'),description:service?null:value('#general-desc'),responsible_person:service?null:value('#general-responsible'),sermon_author:service?value('#sermon-author'):null,sermon_title:service?value('#sermon-title'):null,sermon_description:service?value('#sermon-desc'):null,moderator_name:service?value('#moderator-name'):null,besiedka_leader:service?value('#besiedka-leader'):null,worship_leader:service?value('#worship-leader'):null};}
-function validate(p){if(!form.checkValidity()){form.reportValidity();return 'Vyplňte všetky povinné polia.';}if(p.event_type==='service'&&new Date(`${p.event_date}T12:00:00`).getDay()!==0)return 'Nedeľná bohoslužba musí byť naplánovaná na nedeľu.';if(p.end_time&&p.end_time<=p.start_time)return 'Čas konca musí byť neskôr ako začiatok.';return '';}
-function friendlyError(error){console.error(error);if(error.code==='23505')return 'Na tento dátum už existuje nedeľná bohoslužba. Otvorte ju v zozname a upravte.';if(error.code==='23514')return 'Údaje nezodpovedajú pravidlám kalendára. Skontrolujte dátum a povinné polia.';if(error.code==='42501')return 'Nemáte oprávnenie na vykonanie tejto zmeny.';return error.message||'Vyskytla sa chyba pri ukladaní.';}
-function stats(){const active=list.filter(e=>e.is_published).length;$('#stat-all').textContent=list.length;$('#stat-live').textContent=active;$('#stat-draft').textContent=list.length-active;}
-function drawList(){const q=$('#admin-search-input').value.toLocaleLowerCase('sk-SK');const today=localDate(new Date());const selected=list.filter(e=>!q||[niceTitle(e),e.sermon_title,e.sermon_author,e.responsible_person,e.moderator_name,e.besiedka_leader,e.worship_leader].filter(Boolean).some(text=>String(text).toLocaleLowerCase('sk-SK').includes(q)));
-  selected.sort((a,b)=>{const aa=a.event_date>=today,bb=b.event_date>=today;if(aa!==bb)return aa?-1:1;const compare=`${a.event_date}${a.start_time}`.localeCompare(`${b.event_date}${b.start_time}`);return aa?compare:-compare;});
-  if(!selected.length){$('#admin-list').innerHTML='<div class="empty-state"><span>✳</span><strong>Žiadne udalosti</strong>Pridajte novú udalosť alebo upravte hľadanie.</div>';return;}
-  $('#admin-list').innerHTML=selected.map(e=>`<button type="button" class="admin-event ${editingId===e.id?'current':''}" data-edit="${escapeHTML(e.id)}"><span class="date-tile ${e.event_type}"><span class="date-day">${Number(e.event_date.slice(-2))}</span><span class="date-month">${escapeHTML(new Intl.DateTimeFormat('sk-SK',{month:'short'}).format(new Date(`${e.event_date}T12:00:00`)))}</span></span><span class="admin-event-body"><span class="item-tag ${e.event_type}">${e.event_type==='service'?'BOHOSLUŽBA':'AKCIA'}</span><span class="admin-event-title">${escapeHTML(e.event_type==='service' ? `Nedeľná bohoslužba · ${e.sermon_title}` : e.title)}</span><span class="admin-event-meta">${escapeHTML(timeText(e.start_time))} · ${escapeHTML(e.event_type==='service' ? e.sermon_author : e.responsible_person)}</span></span><span class="status ${e.is_published?'':'draft'}">${e.is_published?'Zverejnené':'Koncept'}</span></button>`).join('');}
-async function reload(){list=await fetchEvents(true);stats();drawList();}
-function setBusy(isBusy){busy=isBusy;$('#save-event').disabled=isBusy;$('#delete-event').disabled=isBusy;$('#save-event').textContent=isBusy?'Ukladám…':'Uložiť udalosť →';}
-form.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;$('#form-error').textContent='';const entry=payload();const error=validate(entry);if(error){$('#form-error').textContent=error;return;}setBusy(true);try{await putEvent(entry,editingId);await reload();showToast(entry.is_published?'Udalosť bola uložená a je zverejnená.':'Koncept bol uložený.');clearForm();}catch(err){const message=friendlyError(err);$('#form-error').textContent=message;showToast(message,'error');}finally{setBusy(false);}});
-$('#delete-event').addEventListener('click',async()=>{if(!editingId||busy)return;const e=list.find(x=>x.id===editingId);if(!window.confirm(`Naozaj chcete odstrániť udalosť „${niceTitle(e)}“ (${formatDate(e.event_date)})?`))return;setBusy(true);try{await removeEvent(editingId);await reload();clearForm();showToast('Udalosť bola odstránená.');}catch(err){showToast(friendlyError(err),'error');}finally{setBusy(false);}});
+function fullProgram(p){return [p.sermon_author,p.sermon_title,p.sermon_description,p.moderator_name].every(x=>String(x||'').trim());}
+function updateRequirements(){const service=type==='service',published=$('#event-published').checked;['#sermon-author','#sermon-title','#sermon-desc','#moderator-name'].forEach(id=>$(id).required=service&&published);['#general-title','#general-responsible','#general-desc'].forEach(id=>$(id).required=!service&&published);$('#worship-leader').required=false;}
+function setType(next){
+  const before=type;type=next;const service=next==='service';
+  $('#choose-service').classList.toggle('selected',service);$('#choose-general').classList.toggle('selected',!service);
+  $('#choose-service').setAttribute('aria-pressed',String(service));$('#choose-general').setAttribute('aria-pressed',String(!service));
+  $('#service-fields').hidden=!service;$('#general-fields').hidden=service;
+  $('#service-time-hint').hidden=!service;$('#service-cancel-zone').hidden=!service;
+  $('#event-time').readOnly=service;
+  if(service){$('#event-time').value='10:00';if($('#event-date').value&&!sundayDate($('#event-date').value))$('#event-date').value=nextSunday();}
+  else if(before==='service'&&!editingId)$('#event-time').value='18:00';
+  updateRequirements();refreshCancellationButton();
+}
+function clearForm(){editingId=null;form.reset();$('#event-date').value=nextSunday();$('#event-time').value='10:00';$('#event-end').value='';$('#event-published').checked=true;$('#editor-title').textContent='Nová udalosť';$('#delete-event').hidden=true;$('#form-error').textContent='';setType('service');drawList();}
+function fillForm(e){
+  editingId=e.id;$('#editor-title').textContent='Upraviť udalosť';setType(e.event_type);
+  $('#event-date').value=e.event_date;$('#event-time').value=e.event_type==='service'?'10:00':timeText(e.start_time);$('#event-end').value=timeText(e.end_time);
+  $('#sermon-author').value=e.sermon_author||'';$('#sermon-title').value=e.sermon_title||'';$('#sermon-desc').value=e.sermon_description||'';
+  $('#moderator-name').value=e.moderator_name||'';$('#worship-leader').value=e.worship_leader||'';
+  $('#general-title').value=e.title||'';$('#general-responsible').value=e.responsible_person||'';$('#general-desc').value=e.description||'';
+  $('#event-published').checked=Boolean(e.is_published);$('#delete-event').hidden=false;$('#form-error').textContent='';updateRequirements();refreshCancellationButton();drawList();
+  if(window.matchMedia('(max-width:850px)').matches)$('#editor-card').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function payload(){const service=type==='service';return {
+  event_type:type,event_date:value('#event-date'),start_time:service?'10:00':value('#event-time'),end_time:value('#event-end')||null,
+  is_published:$('#event-published').checked,is_cancelled:false,
+  title:service?null:value('#general-title'),description:service?null:value('#general-desc'),responsible_person:service?null:value('#general-responsible'),
+  sermon_author:service?value('#sermon-author'):null,sermon_title:service?value('#sermon-title'):null,sermon_description:service?value('#sermon-desc'):null,
+  moderator_name:service?value('#moderator-name'):null,worship_leader:service?value('#worship-leader'):null
+};}
+function validate(p){if(!form.checkValidity()){form.reportValidity();return 'Vyplňte povinné polia.';}if(p.event_type==='service'&&!sundayDate(p.event_date))return 'Bohoslužbu možno naplánovať iba na nedeľu.';if(p.event_type==='service'&&p.is_published&&!fullProgram(p))return 'Pred zverejnením bohoslužby doplňte rečníka, názov a opis slova a moderovanie.';if(p.end_time&&p.end_time<=p.start_time)return 'Čas konca musí byť neskôr ako začiatok.';return '';}
+function friendlyError(error){console.error(error);if(error.code==='23505')return 'Na danú nedeľu už existuje bohoslužba. Vyhľadajte a upravte záznam.';if(error.code==='23514')return 'Údaje nezodpovedajú databázovým pravidlám. Skontrolujte povinné polia a SQL migráciu.';if(error.code==='42501')return 'Tento účet nemá právo vykonať zmenu.';if(error.code==='42P01'||error.code==='PGRST205')return 'Chýba tabuľka z migrácie. Spustite súbor migracia_v2.sql v Supabase.';return error.message||'Nastala chyba pri ukladaní.';}
+function stats(){const active=events.filter(e=>e.is_published).length;$('#stat-all').textContent=events.length;$('#stat-live').textContent=active;$('#stat-draft').textContent=events.length-active;}
+function drawList(){
+  const q=$('#admin-search-input').value.toLocaleLowerCase('sk-SK'),today=localDate(new Date());
+  const selected=events.filter(e=>!q||[niceTitle(e),e.sermon_title,e.sermon_author,e.responsible_person,e.moderator_name,e.worship_leader].filter(Boolean).some(x=>String(x).toLocaleLowerCase('sk-SK').includes(q)));
+  selected.sort((a,b)=>{const aa=a.event_date>=today,bb=b.event_date>=today;if(aa!==bb)return aa?-1:1;const c=`${a.event_date}${a.start_time}`.localeCompare(`${b.event_date}${b.start_time}`);return aa?c:-c;});
+  if(!selected.length){$('#admin-list').innerHTML='<div class="empty-state"><span>✳</span><strong>Žiadne uložené udalosti</strong>Pre nedeľné bohoslužby sa čas 10:00 zobrazí automaticky aj bez vytvoreného záznamu.</div>';return;}
+  $('#admin-list').innerHTML=selected.map(e=>`<button type="button" class="admin-event ${editingId===e.id?'current':''}" data-edit="${escapeHTML(e.id)}"><span class="date-tile ${e.event_type}${e.is_cancelled?' cancelled':''}"><span class="date-day">${Number(e.event_date.slice(-2))}</span><span class="date-month">${escapeHTML(new Intl.DateTimeFormat('sk-SK',{month:'short'}).format(new Date(`${e.event_date}T12:00:00`)))}</span></span><span class="admin-event-body"><span class="item-tag ${e.event_type}">${e.event_type==='service'?'BOHOSLUŽBA':'AKCIA'}</span><span class="admin-event-title">${escapeHTML(e.event_type==='service'?(e.is_cancelled?'Bohoslužba zrušená':`Nedeľná bohoslužba · ${e.sermon_title||'Program sa pripravuje'}`):e.title||'Nepomenovaná akcia')}</span><span class="admin-event-meta">${escapeHTML(timeText(e.start_time))} · ${escapeHTML(e.event_type==='service'?e.sermon_author||'Bez rečníka':e.responsible_person||'Bez osoby')}</span></span><span class="status ${!e.is_published?'draft':e.is_cancelled?'cancelled':''}">${!e.is_published?'Koncept':e.is_cancelled?'Zrušené':'Zverejnené'}</span></button>`).join('');
+}
+async function reloadEvents(){events=await fetchEvents(true);stats();drawList();refreshCancellationButton();}
+async function reloadBesiedka(){besiedka=await fetchBesiedka();drawBesiedka();fillBesiedkaDate();}
+function setBusy(val){busy=val;$('#save-event').disabled=val;$('#delete-event').disabled=val;$('#toggle-cancel-service').disabled=val;$('#save-event').textContent=val?'Ukladám…':'Uložiť udalosť →';}
+function refreshCancellationButton(){
+  const date=value('#event-date'),previous=events.find(e=>e.event_type==='service'&&e.event_date===date),btn=$('#toggle-cancel-service');
+  btn.disabled=busy||!sundayDate(date);btn.textContent=previous?.is_cancelled?'Obnoviť bohoslužbu':'Zrušiť bohoslužbu';btn.classList.toggle('restoring',Boolean(previous?.is_cancelled));
+}
+form.addEventListener('submit',async ev=>{ev.preventDefault();if(busy||!permissions.can_manage_events)return;$('#form-error').textContent='';const entry=payload(),error=validate(entry);if(error){$('#form-error').textContent=error;return;}
+  setBusy(true);try{const onDay=events.find(e=>e.event_type==='service'&&e.event_date===entry.event_date);const targetId=entry.event_type==='service'&&(editingId===null||!events.some(e=>e.id===editingId&&e.event_type==='service'))?onDay?.id||null:editingId;
+    await putEvent(entry,targetId);await reloadEvents();showToast(entry.is_published?'Udalosť je uložená a zverejnená.':'Koncept uložený.');clearForm();
+  }catch(err){const message=friendlyError(err);$('#form-error').textContent=message;showToast(message,'error');}finally{setBusy(false);refreshCancellationButton();}
+});
+$('#toggle-cancel-service').addEventListener('click',async()=>{
+  if(type!=='service'||busy||!permissions.can_manage_events)return;
+  const date=value('#event-date');if(!sundayDate(date)){$('#form-error').textContent='Vyberte platnú nedeľu.';return;}
+  const existing=events.find(e=>e.event_type==='service'&&e.event_date===date),restore=existing?.is_cancelled;
+  const question=restore?`Obnoviť bohoslužbu ${formatDate(date)} o 10:00?`:`Naozaj zrušiť bohoslužbu ${formatDate(date)} o 10:00?`;
+  if(!window.confirm(question))return;setBusy(true);
+  try{
+    const update=restore?{is_cancelled:false,is_published:Boolean(fullProgram(existing)),start_time:'10:00',end_time:existing.end_time&&timeText(existing.end_time)>'10:00'?existing.end_time:null}:{is_cancelled:true,is_published:true,start_time:'10:00',end_time:null};
+    const entry=existing?update:{event_type:'service',event_date:date,...update};
+    await putEvent(entry,existing?.id||null);await reloadEvents();clearForm();$('#event-date').value=date;refreshCancellationButton();showToast(restore?'Bohoslužba bola obnovená.':'Bohoslužba bola na túto nedeľu označená ako zrušená.');
+  }catch(err){const message=friendlyError(err);$('#form-error').textContent=message;showToast(message,'error');}finally{setBusy(false);refreshCancellationButton();}
+});
+$('#delete-event').addEventListener('click',async()=>{if(!editingId||busy||!permissions.can_manage_events)return;const item=events.find(e=>e.id===editingId);if(!window.confirm(`Odstrániť „${niceTitle(item)}“ (${formatDate(item.event_date)})? Nedeľa sa potom opäť zobrazí ako bežná bohoslužba o 10:00.`))return;
+  setBusy(true);try{await removeEvent(editingId);await reloadEvents();clearForm();showToast('Záznam bol odstránený.');}catch(err){showToast(friendlyError(err),'error');}finally{setBusy(false);}
+});
 $('#choose-service').addEventListener('click',()=>setType('service'));$('#choose-general').addEventListener('click',()=>setType('general'));
+$('#event-published').addEventListener('change',updateRequirements);$('#event-date').addEventListener('change',refreshCancellationButton);
 $('#clear-form').addEventListener('click',clearForm);$('#cancel-edit').addEventListener('click',clearForm);$('#new-event').addEventListener('click',()=>{clearForm();$('#editor-card').scrollIntoView({behavior:'smooth',block:'start'});$('#event-date').focus();});
 $('#admin-search-input').addEventListener('input',drawList);
-$('#admin-list').addEventListener('click',e=>{const item=e.target.closest('[data-edit]');if(item){const selected=list.find(x=>String(x.id)===item.dataset.edit);if(selected)fillForm(selected);}});
+$('#admin-list').addEventListener('click',ev=>{const item=ev.target.closest('[data-edit]');if(item){const selected=events.find(x=>String(x.id)===item.dataset.edit);if(selected)fillForm(selected);}});
+// Samostatný editor besiedky - nevie meniť program bohoslužieb.
+function drawBesiedka(){const html=Array.from({length:12},(_,i)=>nextSunday(i)).map(date=>{
+  const assigned=besiedka.find(e=>e.event_date===date),chosen=$('#besiedka-date').value===date;
+  return `<button type="button" class="besiedka-item${chosen?' active':''}" data-sunday="${date}"><span>${escapeHTML(formatDate(date,{day:'numeric',month:'long'}))}</span><strong>${escapeHTML(assigned?.responsible_person||'Nepridelené')}</strong></button>`;
+});$('#besiedka-list').innerHTML=html;}
+function fillBesiedkaDate(){const date=value('#besiedka-date'),assigned=besiedka.find(e=>e.event_date===date);$('#besiedka-person').value=assigned?.responsible_person||'';$('#besiedka-delete').hidden=!assigned;drawBesiedka();}
+$('#besiedka-date').addEventListener('change',fillBesiedkaDate);
+$('#besiedka-list').addEventListener('click',ev=>{const button=ev.target.closest('[data-sunday]');if(button){$('#besiedka-date').value=button.dataset.sunday;fillBesiedkaDate();}});
+$('#besiedka-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!permissions.can_manage_besiedka)return;$('#besiedka-error').textContent='';const date=value('#besiedka-date'),person=value('#besiedka-person');if(!sundayDate(date)){$('#besiedka-error').textContent='Besiedka sa zapisuje na nedeľu.';return;}if(!person){$('#besiedka-error').textContent='Vyplňte zodpovednú osobu.';return;}
+  $('#besiedka-save').disabled=true;
+  try{await putBesiedka(date,person);await reloadBesiedka();showToast('Besiedka bola uložená a je viditeľná v kalendári.');}
+  catch(err){$('#besiedka-error').textContent=friendlyError(err);showToast('Nepodarilo sa uložiť besiedku.','error');}
+  finally{$('#besiedka-save').disabled=false;}
+});
+$('#besiedka-delete').addEventListener('click',async()=>{const date=value('#besiedka-date');if(!sundayDate(date)||!window.confirm(`Odstrániť pridelenie besiedky na ${formatDate(date)}?`))return;
+  try{await putBesiedka(date,'');await reloadBesiedka();showToast('Pridelenie besiedky bolo odstránené.');}catch(err){$('#besiedka-error').textContent=friendlyError(err);}
+});
 function showLogin(message=''){$('#login-view').hidden=false;$('#admin-view').hidden=true;$('#login-error').textContent=message;}
-function showAdmin(user){$('#login-view').hidden=true;$('#admin-view').hidden=false;$('#signed-user').textContent=user?.email||'Ukážkový režim';$('#logout-btn').hidden=!configured;clearForm();}
-async function authorizedUser(){const client=await getClient();const {data:{user},error}=await client.auth.getUser();if(error||!user)return null;const {data,error:accessError}=await client.from('editors').select('user_id,display_name').eq('user_id',user.id).eq('is_active',true).maybeSingle();if(accessError)throw accessError;return data?user:null;}
-$('#login-form').addEventListener('submit',async e=>{e.preventDefault();const button=$('#login-button');button.disabled=true;$('#login-error').textContent='';try{const client=await getClient();const {error}=await client.auth.signInWithPassword({email:$('#login-email').value.trim(),password:$('#login-password').value});if(error)throw error;const user=await authorizedUser();if(!user){await client.auth.signOut();showLogin('Tento účet nemá schválené oprávnenie spravovať udalosti.');return;}signedInUser=user;showAdmin(user);await reload();$('#login-password').value='';}catch(err){console.error(err);showLogin('Prihlásenie zlyhalo. Skontrolujte údaje a prístupové práva.');}finally{button.disabled=false;}});
-$('#logout-btn').addEventListener('click',async()=>{try{const client=await getClient();await client.auth.signOut();signedInUser=null;list=[];showLogin();showToast('Boli ste odhlásení.');}catch(err){showToast('Odhlásenie zlyhalo.','error');}});
-async function init(){if(!configured){showAdmin(null);await reload();return;}try{const user=await authorizedUser();if(!user){const client=await getClient();const {data:{session}}=await client.auth.getSession();if(session)await client.auth.signOut();showLogin();return;}signedInUser=user;showAdmin(user);await reload();}catch(err){console.error(err);showLogin('Nedá sa overiť oprávnenie. Skontrolujte pripojenie a nastavenie Supabase.');}}
+async function showAdmin(account){
+  $('#login-view').hidden=true;$('#admin-view').hidden=false;$('#signed-user').textContent=account?.email||'Ukážkový režim';$('#logout-btn').hidden=!configured;
+  $('#besiedka-section').hidden=!permissions.can_manage_besiedka;$('#events-admin-content').hidden=!permissions.can_manage_events;$('.admin-stats').hidden=!permissions.can_manage_events;
+  clearForm();$('#besiedka-date').value=nextSunday();
+  if(permissions.can_manage_events)await reloadEvents();
+  if(permissions.can_manage_besiedka)await reloadBesiedka();
+}
+async function authorizedUser(){
+  const client=await getClient();const {data:{user},error}=await client.auth.getUser();if(error||!user)return null;
+  const {data,error:accessError}=await client.from('editors').select('user_id,display_name,can_manage_events,can_manage_besiedka').eq('user_id',user.id).eq('is_active',true).maybeSingle();
+  if(accessError)throw accessError;if(!data||(!data.can_manage_events&&!data.can_manage_besiedka))return null;
+  return {user,permissions:{can_manage_events:data.can_manage_events,can_manage_besiedka:data.can_manage_besiedka}};
+}
+$('#login-form').addEventListener('submit',async ev=>{ev.preventDefault();const button=$('#login-button');button.disabled=true;$('#login-error').textContent='';try{
+  const client=await getClient();const {error}=await client.auth.signInWithPassword({email:value('#login-email'),password:$('#login-password').value});if(error)throw error;
+  const authorized=await authorizedUser();if(!authorized){await client.auth.signOut();showLogin('Účet nemá pridelené oprávnenia.');return;}
+  signedInUser=authorized.user;permissions=authorized.permissions;await showAdmin(signedInUser);$('#login-password').value='';
+}catch(err){console.error(err);showLogin('Prihlásenie alebo načítanie práv zlyhalo. Skontrolujte SQL migráciu, konfiguráciu a oprávnenia.');}finally{button.disabled=false;}});
+$('#logout-btn').addEventListener('click',async()=>{try{const client=await getClient();await client.auth.signOut();signedInUser=null;events=[];besiedka=[];showLogin();showToast('Boli ste odhlásení.');}catch(err){showToast('Odhlásenie zlyhalo.','error');}});
+async function init(){
+  if(!configured){await showAdmin(null);return;}
+  try{const authorized=await authorizedUser();if(!authorized){const client=await getClient();const {data:{session}}=await client.auth.getSession();if(session)await client.auth.signOut();showLogin();return;}
+    signedInUser=authorized.user;permissions=authorized.permissions;await showAdmin(signedInUser);
+  }catch(err){console.error(err);showLogin('Nedá sa overiť oprávnenie. Skontrolujte migráciu databázy a pripojenie Supabase.');}
+}
 init();
