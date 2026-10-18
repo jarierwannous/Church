@@ -24,3 +24,60 @@
 .besiedka-layout{display:grid;grid-template-columns:minmax(240px,.7fr) minmax(320px,1.3fr);gap:28px;border-top:1px solid #e8eee8;padding-top:22px}.besiedka-layout form{max-width:430px}.besiedka-plan>strong{font-size:13px;color:#426253}.besiedka-list{margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.besiedka-item{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #e6ece4;border-radius:9px;background:#fafcf9;padding:11px 12px;text-align:left}.besiedka-item span{font-size:11px;color:#6b8171;white-space:nowrap}.besiedka-item strong{font-size:11px;color:#3e6950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.besiedka-item.active{border-color:#6e9f80;background:#edf5ee}.besiedka-item:hover{border-color:#9abb9e}
 @media(max-width:850px){.besiedka-layout{grid-template-columns:1fr}.besiedka-layout form{max-width:unset}}
 @media(max-width:550px){.besiedka-section{padding:20px 17px}.besiedka-header{align-items:flex-start;flex-direction:column;gap:12px}.besiedka-list{grid-template-columns:1fr}.cancel-zone{align-items:flex-start;flex-direction:column}.cancel-button{width:100%}}
+
+/* V3 – jednoduchá administrácia (bez zmien verejného kalendára) */
+.simple-admin .admin-shell{max-width:1080px;padding-top:34px}
+.simple-admin .admin-simple-top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:38px;padding-bottom:18px;border-bottom:1px solid #e2e9e1}
+.simple-admin .admin-top-brand{font-size:11px;font-weight:850;letter-spacing:.16em;color:#728f7c}
+.simple-admin .admin-top-actions{padding:0}
+.simple-admin .admin-home{min-height:440px;display:flex;align-items:center;flex-direction:column;justify-content:center;text-align:center;padding:30px 12px 85px}
+.simple-admin .admin-home-mark{width:72px;height:72px;background:#e5f0e8;border-radius:22px;display:grid;place-items:center;font-family:Georgia,serif;color:#387659;font-size:37px;margin-bottom:24px}
+.simple-admin .admin-home h1{font-size:clamp(38px,5.2vw,60px);margin:14px 0 14px}
+.simple-admin .admin-home h1 em{color:#4e8269}
+.simple-admin .admin-home p{max-width:450px;line-height:1.8;font-size:15px;color:#788b7e;margin:0 auto 28px}
+.simple-admin .admin-add-btn{font-size:16px;border-radius:14px;padding:19px 30px;min-width:245px;box-shadow:0 9px 20px #173d3720}
+.simple-admin .admin-link-button{font:inherit;color:#4c745c;background:transparent;border:0;padding:14px;font-size:13px;font-weight:690;margin-top:15px}
+.simple-admin .admin-link-button:hover{text-decoration:underline}
+.simple-admin .admin-stage{max-width:810px;margin:0 auto 30px}
+.simple-admin .admin-back{border:0;background:transparent;color:#587c64;font-weight:730;font-size:13px;padding:10px 5px;margin-bottom:17px}
+.simple-admin .admin-back:hover{color:#173d37}
+.simple-admin .admin-stage-heading{text-align:center;margin:0 auto 28px}
+.simple-admin .admin-stage-heading h2{font-size:clamp(31px,4vw,42px);margin:10px 0 12px}
+.simple-admin .admin-stage-heading p{font-size:14px;line-height:1.65;color:#789083;margin:0 auto;max-width:470px}
+.simple-admin .admin-kind-grid{display:flex;flex-direction:column;gap:13px;max-width:690px;margin:0 auto}
+.simple-admin .admin-kind-card{width:100%;display:flex;align-items:center;gap:18px;text-align:left;border:1px solid #dfe8df;border-radius:17px;padding:22px;background:#fff;box-shadow:0 6px 20px #203c3008;transition:border-color .15s,transform .15s,box-shadow .15s;color:#2e4a3c}
+.simple-admin .admin-kind-card:hover{border-color:#75a386;transform:translateY(-2px);box-shadow:0 12px 24px #203c3012}
+.simple-admin .kind-card-icon{width:58px;height:58px;flex:none;border-radius:14px;display:grid;place-items:center;font-size:27px;font-family:Georgia,serif}
+.simple-admin .kind-card-icon.service{background:#e5f0e7;color:#39745c}
+.simple-admin .kind-card-icon.sunday{background:#f0e8f6;color:#86669e}
+.simple-admin .kind-card-icon.general{background:#faeedf;color:#ad804b}
+.simple-admin .kind-card-text{flex:1;min-width:0;display:flex;flex-direction:column;gap:7px}
+.simple-admin .kind-card-text strong{font-size:18px;letter-spacing:-.025em}
+.simple-admin .kind-card-text small{color:#7f8f84;font-size:12px;line-height:1.5}
+.simple-admin .kind-card-arrow{font-size:22px;color:#96a99b}
+.simple-admin #admin-editor-stage{max-width:720px}
+.simple-admin .editor-card{position:static;padding:30px 35px}
+.simple-admin .editor-head h2{margin:5px 0 24px;font-size:27px}
+.simple-admin .besiedka-section{margin:0;padding:30px}
+.simple-admin .besiedka-layout{grid-template-columns:1fr;gap:32px}
+.simple-admin .besiedka-layout form{max-width:unset}
+.simple-admin #admin-list-stage{max-width:740px}
+.simple-admin .admin-list-card{padding:25px}
+.simple-admin .admin-list{max-height:none}
+.simple-admin .input-group input,.simple-admin .input-group textarea{font-size:15px}
+.simple-admin .input-group label{font-size:13px}
+.simple-admin .form-actions .primary-button{font-size:13px;padding:14px 19px}
+@media(max-width:650px){
+  .simple-admin .admin-simple-top{margin-bottom:16px;gap:10px}
+  .simple-admin .admin-top-brand{font-size:9px;max-width:140px}
+  .simple-admin .admin-home{min-height:405px;padding:10px 0 65px}
+  .simple-admin .admin-home h1{font-size:37px}
+  .simple-admin .admin-home p{font-size:14px}
+  .simple-admin .admin-kind-card{gap:12px;padding:17px 14px}
+  .simple-admin .kind-card-icon{height:48px;width:48px;font-size:23px}
+  .simple-admin .kind-card-text strong{font-size:16px}
+  .simple-admin .kind-card-text small{font-size:11px}
+  .simple-admin .admin-stage{margin-top:5px}
+  .simple-admin .editor-card,.simple-admin .besiedka-section{padding:22px 17px}
+  .simple-admin .besiedka-header{align-items:flex-start;flex-direction:column}
+}
