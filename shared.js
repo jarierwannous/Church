@@ -139,8 +139,22 @@ export async function putBesiedka(event_date,responsible_person,is_cancelled=fal
   if(!person&&!cancelled){const {error}=await client.from('besiedka_assignments').delete().eq('event_date',event_date);if(error)throw error;return;}
   const {data:{user},error:userError}=await client.auth.getUser();
   if(userError||!user)throw new Error('Pre uloženie besiedky sa prihláste.');
-  const {error}=await client.from('besiedka_assignments').upsert({event_date,responsible_person:person,is_cancelled:cancelled,updated_by:user.id},{onConflict:'event_date'});
-  if(error)throw error;
+  // Dôležité: Namiesto UPSERT používame UPDATE a INSERT samostatne.
+  // UPSERT môže meniť aj primárny kľúč event_date, na ktorý úmyselne
+  // nemá rola authenticated udelené UPDATE oprávnenie.
+  const changes={responsible_person:person,is_cancelled:cancelled,updated_by:user.id};
+  async function updateExisting(){
+    const {data,error}=await client.from('besiedka_assignments')
+      .update(changes).eq('event_date',event_date).select('event_date');
+    if(error)throw error;
+    return Array.isArray(data) && data.length>0;
+  }
+  if(await updateExisting())return;
+  const {error:insertError}=await client.from('besiedka_assignments').insert({event_date,...changes});
+  if(!insertError)return;
+  // Ak medzičasom tú istú nedeľu vyplnil niekto iný, skúsiť bežnú aktualizáciu.
+  if(insertError.code==='23505' && await updateExisting())return;
+  throw insertError;
 }
 export function combineWithSundays(rawEvents, besiedka, firstDate, lastDate) {
   const services=new Map(rawEvents.filter(e=>e.event_type==='service').map(e=>[e.event_date,e]));
