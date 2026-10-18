@@ -4,28 +4,29 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173d37"><meta name="description" content="Kalendár bohoslužieb a stretnutí Kresťanského zboru Trenčín.">
   <title>Kalendár | Kresťanský zbor Trenčín</title>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
-<body>
+<body class="compact-public">
   <header class="site-header"><div class="shell topbar">
-    <a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – úvod"><span class="brand-symbol" aria-hidden="true">✝</span><span class="brand-name">Kresťanský zbor <strong>Trenčín</strong></span></a>
+    <a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – úvod"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a>
     <nav class="topnav" aria-label="Hlavná navigácia"><a href="#kalendar" class="nav-active">Kalendár</a><a href="#najblizsie">Najbližšie udalosti</a><a class="nav-admin" href="admin.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Správa udalostí</a></nav>
   </div></header>
   <div id="demo-banner" class="demo-banner" hidden><div class="shell"><strong>Ukážkový režim</strong> — zobrazené údaje sú vymyslené na prezentáciu stránky. Pre reálne údaje pripojte Supabase.</div></div>
   <main>
-    <section class="hero"><div class="shell hero-content">
-      <div class="hero-main"><div class="eyebrow light"><span class="eyebrow-dot"></span> SPOLOČNE V TRENČÍNE</div><h1>Priestor na <em>stretnutia.</em><br>Čas na spoločenstvo.</h1><p>Všetky bohoslužby a spoločné akcie na jednom mieste. Pozrite sa, čo nás najbližšie čaká.</p><a class="hero-link" href="#kalendar">Pozrieť kalendár <span aria-hidden="true">↗</span></a></div>
-      <div class="hero-highlight" id="hero-highlight" aria-live="polite"><div class="loading-block">Načítavam najbližšiu bohoslužbu…</div></div>
-    </div><div class="hero-decoration" aria-hidden="true"></div></section>
-    <section class="main-section shell" id="kalendar"><div class="section-intro"><div><span class="eyebrow">NÁŠ SPOLOČNÝ ČAS</span><h2>Kalendár <em>udalostí</em></h2><p>Nedeľné bohoslužby začínajú o 10:00. Vyberte si deň a pozrite si podrobnosti stretnutí.</p></div><div class="legend"><span><i class="legend-dot service"></i> Bohoslužba</span><span><i class="legend-dot general"></i> Ostatná akcia</span></div></div>
+    <section class="service-quickbar" aria-label="Najbližšia bohoslužba">
+      <div class="shell service-quickbar-inner">
+        <span class="service-quickbar-label">Najbližšia bohoslužba</span>
+        <button type="button" id="hero-highlight" class="service-quickbar-detail" aria-live="polite" disabled>Načítavam…</button>
+      </div>
+    </section>
+    <section class="main-section shell" id="kalendar"><div class="section-intro"><div><h1 class="calendar-page-title">Kalendár udalostí</h1><p>Vyberte dátum a pozrite si podrobnosti stretnutí.</p></div><div class="legend"><span><i class="legend-dot service"></i> Bohoslužba</span><span><i class="legend-dot general"></i> Ostatná akcia</span></div></div>
       <div class="calendar-toolbar"><div class="month-control"><button class="icon-button" id="prev-month" aria-label="Predchádzajúci mesiac"><span aria-hidden="true">‹</span></button><h3 id="month-title">&nbsp;</h3><button class="icon-button" id="next-month" aria-label="Nasledujúci mesiac"><span aria-hidden="true">›</span></button><button class="today-btn" id="today-btn">Dnes</button></div><div class="filters"><div class="filter-tabs" role="group" aria-label="Filtrovať udalosti"><button class="tab active" data-filter="all" aria-pressed="true">Všetko</button><button class="tab" data-filter="service" aria-pressed="false">Bohoslužby</button><button class="tab" data-filter="general" aria-pressed="false">Akcie</button></div><label class="search-wrap"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input id="event-search" type="search" placeholder="Hľadať udalosť" aria-label="Hľadať udalosť"></label></div></div>
       <div class="calendar-layout"><div class="calendar-card"><div class="calendar-head" aria-hidden="true"><span>PO</span><span>UT</span><span>ST</span><span>ŠT</span><span>PI</span><span>SO</span><span>NE</span></div><div class="calendar-grid" id="calendar-grid" aria-label="Kalendár udalostí"></div><div class="calendar-footer"><span id="month-count">&nbsp;</span><span>Vyberte udalosť pre viac informácií</span></div></div>
       <aside class="upcoming-panel" id="najblizsie"><div class="aside-header"><div><span class="eyebrow">ČO NÁS ČAKÁ</span><h3>Najbližšie udalosti</h3></div><span class="tiny-spark" aria-hidden="true">✳</span></div><div id="upcoming-list" class="upcoming-list"><p class="muted">Načítavam…</p></div></aside></div>
     </section>
-    <section class="closing-band"><div class="shell closing-inner"><div><span class="eyebrow light">DOBRÉ JE BYŤ SPOLU</span><h2>Tešíme sa na spoločný čas.</h2><p>Prehľad udalostí je verejne dostupný. Spravovať ho môžu len poverení členovia zboru.</p></div><span class="closing-art" aria-hidden="true">✳</span></div></section>
   </main>
   <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><a href="admin.html">Správa kalendára <span aria-hidden="true">↗</span></a></div></footer>
   <div class="modal-overlay" id="event-modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Zavrieť detail">×</button><div id="modal-inner"></div></div></div>
-  <script src="config.js"></script><script type="module" src="public.js?v=2"></script>
+  <script src="config.js"></script><script type="module" src="public.js?v=5"></script>
 </body>
 </html>

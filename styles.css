@@ -81,3 +81,64 @@
   .simple-admin .editor-card,.simple-admin .besiedka-section{padding:22px 17px}
   .simple-admin .besiedka-header{align-items:flex-start;flex-direction:column}
 }
+
+
+/* V4 – pôvodné logo Kresťanského zboru Trenčín */
+.site-header .brand {display:inline-flex;align-items:center;flex:0 1 300px;min-width:0}
+.site-header .brand-logo {width:100%;height:auto;max-height:56px;display:block;object-fit:contain;object-position:left center}
+.site-header .topnav {flex-shrink:0}
+.site-header .brand:focus-visible {outline:3px solid #c99e65;outline-offset:5px;border-radius:4px}
+.admin-header .nav-back-short {display:none}
+.branded-admin .admin-home-mark {display:block;width:min(250px,80%);height:auto;margin:0 auto 24px;background:transparent;border:0;border-radius:0;box-shadow:none;color:inherit}
+.branded-admin .admin-home-mark img {width:100%;height:auto;display:block}
+@media (max-width:850px) {
+  .site-header .brand {flex-basis:246px}
+}
+@media (max-width:550px) {
+  .site-header .brand {flex:0 1 190px}
+  .site-header .topbar {gap:10px}
+  .admin-header .admin-pill {display:none}
+  .admin-header .nav-back-long {display:none}
+  .admin-header .nav-back-short {display:inline}
+  .branded-admin .admin-home-mark {width:min(222px,76%);margin-bottom:22px}
+}
+@media (max-width:360px) {
+  .site-header .brand {flex-basis:163px}
+  .site-header .topnav {gap:7px}
+}
+
+/* V5 – kompaktný verejný kalendár namiesto veľkej úvodnej sekcie */
+.compact-public .service-quickbar{background:#edf4ee;border-bottom:1px solid #dce8de}
+.compact-public .service-quickbar-inner{display:flex;align-items:center;gap:20px;min-height:68px;padding:11px 0}
+.compact-public .service-quickbar-label{display:inline-flex;align-items:center;gap:9px;flex-shrink:0;font-weight:800;font-size:12px;color:#496c55;white-space:nowrap}
+.compact-public .service-quickbar-label:before{content:"";width:8px;height:8px;border-radius:50%;background:#4f8e71;flex:none}
+.compact-public .service-quickbar-detail{display:flex;align-items:center;gap:14px;flex:1;min-width:0;min-height:43px;text-align:left;background:transparent;border:0;border-radius:9px;padding:8px 10px;color:#254b3b;font-size:13px;cursor:pointer}
+.compact-public .service-quickbar-detail:hover:not(:disabled){background:#dfece2}
+.compact-public .service-quickbar-detail:disabled{opacity:1;cursor:default;color:#7a9081}
+.compact-public .quick-date{font-size:14px;font-weight:780;white-space:nowrap}
+.compact-public .quick-topic{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;color:#334d3f}
+.compact-public .quick-speaker{white-space:nowrap;color:#647e6b;font-size:12px}
+.compact-public .quick-arrow{margin-left:auto;flex:none;color:#4d8d6b;font-size:22px;line-height:1}
+.compact-public .main-section{padding:32px 0 54px}
+.compact-public .section-intro{margin-bottom:22px;align-items:center}
+.compact-public .calendar-page-title{font-size:clamp(23px,2.6vw,30px);line-height:1.2;letter-spacing:-.03em;font-weight:760;margin:0 0 6px}
+.compact-public .section-intro p{font-size:13px}
+.compact-public .site-footer{margin-top:0}
+@media(max-width:800px){
+ .compact-public .service-quickbar-inner{flex-wrap:wrap;gap:3px;padding:13px 0}
+ .compact-public .service-quickbar-label{width:100%;font-size:11px}
+ .compact-public .service-quickbar-detail{width:100%;flex:1 1 100%;padding:6px 0;flex-wrap:wrap;gap:5px 10px;min-height:unset}
+ .compact-public .quick-date{font-size:13px}
+ .compact-public .quick-topic{font-size:12px;flex:1 1 auto}
+ .compact-public .quick-speaker{font-size:11px}
+ .compact-public .quick-arrow{font-size:18px}
+ .compact-public .main-section{padding:26px 0 46px}
+ .compact-public .section-intro{margin-bottom:18px}
+}
+@media(max-width:550px){
+ .compact-public .calendar-page-title{font-size:25px}
+ .compact-public .section-intro p{line-height:1.5}
+ .compact-public .quick-date{flex:1 1 100%}
+ .compact-public .quick-topic{flex:1 1 auto}
+ .compact-public .quick-speaker{display:none}
+}

@@ -15,12 +15,22 @@ function matches(e){const q=state.query.toLocaleLowerCase('sk-SK');return (state
 function eventDateTime(e){return `${e.event_date}T${timeText(e.start_time)||'00:00'}`;}
 function readableDate(e){return `${formatDate(e.event_date)} · ${timeText(e.start_time)}${e.end_time?` – ${timeText(e.end_time)}`:''}`;}
 function renderHero(){
-  const now=new Date(); const upcoming=sortEvents(state.events.filter(e=>e.event_type==='service'&&!e.is_cancelled&&new Date(eventDateTime(e))>=now))[0];
+  const now=new Date();
+  const upcoming=sortEvents(state.events.filter(e=>e.event_type==='service'&&!e.is_cancelled&&new Date(eventDateTime(e))>=now))[0];
   const target=$('#hero-highlight');
-  if(!upcoming){target.classList.add('empty');target.innerHTML='<div class="mini-eyebrow">NAJBLIŽŠIA BOHOSLUŽBA</div><h3>Sledujte náš kalendár</h3>';target.onclick=null;target.removeAttribute('role');target.removeAttribute('tabindex');return;}
-  target.classList.remove('empty');
-  target.innerHTML=`<div class="mini-eyebrow">NAJBLIŽŠIA BOHOSLUŽBA</div><h3>${escapeHTML(formatDate(upcoming.event_date,{weekday:'long',day:'numeric',month:'long'}))}</h3><div class="sermon-preview">${upcoming.sermon_title?`„${escapeHTML(upcoming.sermon_title)}“`:'Program hlavného slova pripravujeme'}</div><div class="speaker-preview">${upcoming.sermon_author?`Hlavné slovo: <strong>${escapeHTML(upcoming.sermon_author)}</strong>`:'Podrobnosti doplníme čoskoro.'}</div><div class="hero-meta"><span>◷ &nbsp;10:00</span><i>•</i><span>Nedeľa</span></div>`;
-  target.style.cursor='pointer';target.setAttribute('role','button');target.setAttribute('tabindex','0');target.setAttribute('aria-label','Otvoriť najbližšiu bohoslužbu');target.onclick=()=>openModal(upcoming.id);target.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();openModal(upcoming.id);}};
+  if(!upcoming){
+    target.disabled=true;
+    target.textContent='Zatiaľ nie je známa najbližšia bohoslužba.';
+    target.onclick=null;
+    return;
+  }
+  const date=formatDate(upcoming.event_date,{weekday:'long',day:'numeric',month:'long'});
+  const sermon=upcoming.sermon_title?`„${escapeHTML(upcoming.sermon_title)}“`:'Program pripravujeme';
+  const speaker=upcoming.sermon_author?`<span class="quick-speaker">${escapeHTML(upcoming.sermon_author)}</span>`:'';
+  target.disabled=false;
+  target.innerHTML=`<span class="quick-date">${escapeHTML(date)} · 10:00</span><span class="quick-topic">${sermon}</span>${speaker}<span class="quick-arrow" aria-hidden="true">→</span>`;
+  target.setAttribute('aria-label',`Najbližšia bohoslužba: ${date} o 10:00. Otvoriť podrobnosti.`);
+  target.onclick=()=>openModal(upcoming.id);
 }
 function renderCalendar(){
   const first=new Date(state.year,state.month,1);$('#month-title').textContent=monthFormat.format(first);
