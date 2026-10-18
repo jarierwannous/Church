@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#173d37" name="theme-color"/>
 <title>Správa udalostí | Kresťanský zbor Trenčín</title>
-<link href="styles.css?v=5" rel="stylesheet"/>
+<link href="styles.css?v=6" rel="stylesheet"/>
 </head>
 <body class="admin-body simple-admin branded-admin">
 <header class="site-header admin-header"><div class="shell topbar"><a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – verejný kalendár"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a><nav class="topnav"><a href="index.html"><span class="nav-back-long">← Verejný kalendár</span><span class="nav-back-short">← Kalendár</span></a><span class="admin-pill">Administrácia</span></nav></div></header>
@@ -49,8 +49,8 @@
 <section aria-label="Formulár besiedky" class="admin-stage" hidden="" id="admin-besiedka-stage">
 <button class="admin-back" id="back-home-from-besiedka" type="button">← Späť na úvod</button>
 <section class="besiedka-section" id="besiedka-section">
-<div class="besiedka-header"><div><div class="eyebrow">SAMOSTATNÁ SLUŽBA</div><h2>Besiedka</h2><p>Vyberte nedeľu a doplňte zodpovednú osobu. Program bohoslužby sa upravuje samostatne.</p></div><span class="service-time-pill">Nedele · 10:00</span></div>
-<div class="besiedka-layout"><form id="besiedka-form"><div class="input-group"><label for="besiedka-date">Nedeľa <span class="required">*</span></label><input id="besiedka-date" required="" type="date"/></div><div class="input-group"><label for="besiedka-person">Zodpovedná osoba za besiedku</label><input id="besiedka-person" maxlength="140" placeholder="Meno a priezvisko" type="text"/></div><p class="helper-note">Ak osobu nevyplníte, môžete už uložené pridelenie vymazať tlačidlom „Odstrániť priradenie“.</p><p class="form-error" id="besiedka-error" role="alert"></p><div class="form-actions"><button class="ghost-button" hidden="" id="besiedka-delete" type="button">Odstrániť priradenie</button><button class="primary-button" id="besiedka-save" type="submit">Uložiť besiedku →</button></div></form><div class="besiedka-plan"><strong>Najbližšie nedele</strong><div class="besiedka-list" id="besiedka-list"></div></div></div>
+<div class="besiedka-header"><div><div class="eyebrow">SAMOSTATNÁ SLUŽBA</div><h2>Besiedka</h2><p>Vyberte nedeľu a zodpovednú osobu, alebo označte, že sa besiedka nekoná. Program bohoslužby sa upravuje samostatne.</p></div><span class="service-time-pill">Nedele · 10:00</span></div>
+<div class="besiedka-layout"><form id="besiedka-form"><div class="input-group"><label for="besiedka-date">Nedeľa <span class="required">*</span></label><input id="besiedka-date" required="" type="date"/></div><label class="besiedka-cancel-toggle" for="besiedka-cancelled"><input id="besiedka-cancelled" type="checkbox"/><span><strong>Besiedka je zrušená</strong><small>Verejný kalendár zobrazí oznam „Besiedka zrušená“ iba pre vybranú nedeľu. Bohoslužba tým zostáva zachovaná.</small></span></label><div class="input-group" id="besiedka-person-group"><label for="besiedka-person">Zodpovedná osoba za besiedku <span class="required">*</span></label><input id="besiedka-person" maxlength="140" placeholder="Meno a priezvisko" type="text"/></div><p class="helper-note">Ak chcete odstrániť záznam úplne, použite tlačidlo „Odstrániť priradenie“. Zrušenie besiedky je samostatný verejný oznam.</p><p class="form-error" id="besiedka-error" role="alert"></p><div class="form-actions"><button class="ghost-button" hidden="" id="besiedka-delete" type="button">Odstrániť priradenie</button><button class="primary-button" id="besiedka-save" type="submit">Uložiť besiedku →</button></div></form><div class="besiedka-plan"><strong>Najbližšie nedele</strong><div class="besiedka-list" id="besiedka-list"></div></div></div>
 </section>
 </section>
 <section aria-label="Zoznam udalostí" class="admin-stage" hidden="" id="admin-list-stage">
@@ -60,5 +60,5 @@
 </section>
 </main>
 <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><a href="index.html">Verejný kalendár ↗</a></div></footer>
-<script src="config.js"></script><script src="admin.js?v=3" type="module"></script>
+<script src="config.js"></script><script src="admin.js?v=6" type="module"></script>
 </body></html>

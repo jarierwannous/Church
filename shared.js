@@ -123,27 +123,28 @@ function demoBesiedka() {
 export async function fetchBesiedka() {
   if (!configured) return demoBesiedka();
   const client=await getClient();
-  const {data,error}=await client.from('besiedka_assignments').select('event_date,responsible_person').order('event_date',{ascending:true});
+  const {data,error}=await client.from('besiedka_assignments').select('event_date,responsible_person,is_cancelled').order('event_date',{ascending:true});
   if(error) throw error;
   return data||[];
 }
-export async function putBesiedka(event_date,responsible_person) {
+export async function putBesiedka(event_date,responsible_person,is_cancelled=false) {
   const person=String(responsible_person||'').trim();
+  const cancelled=Boolean(is_cancelled);
   if(!configured) {
     const items=demoBesiedka().filter(e=>e.event_date!==event_date);
-    if(person)items.push({event_date,responsible_person:person});
+    if(person||cancelled)items.push({event_date,responsible_person:person,is_cancelled:cancelled});
     localStorage.setItem(besiedkaDemoKey,JSON.stringify(items));return;
   }
   const client=await getClient();
-  if(!person){const {error}=await client.from('besiedka_assignments').delete().eq('event_date',event_date);if(error)throw error;return;}
+  if(!person&&!cancelled){const {error}=await client.from('besiedka_assignments').delete().eq('event_date',event_date);if(error)throw error;return;}
   const {data:{user},error:userError}=await client.auth.getUser();
   if(userError||!user)throw new Error('Pre uloženie besiedky sa prihláste.');
-  const {error}=await client.from('besiedka_assignments').upsert({event_date,responsible_person:person,updated_by:user.id},{onConflict:'event_date'});
+  const {error}=await client.from('besiedka_assignments').upsert({event_date,responsible_person:person,is_cancelled:cancelled,updated_by:user.id},{onConflict:'event_date'});
   if(error)throw error;
 }
 export function combineWithSundays(rawEvents, besiedka, firstDate, lastDate) {
   const services=new Map(rawEvents.filter(e=>e.event_type==='service').map(e=>[e.event_date,e]));
-  const assignments=new Map(besiedka.map(e=>[e.event_date,e.responsible_person]));
+  const assignments=new Map(besiedka.map(e=>[e.event_date,e]));
   const other=rawEvents.filter(e=>e.event_type!=='service');
   const cursor=parseDate(firstDate); const end=parseDate(lastDate);
   // Limitne kontrolovaný interval, bez generovania do nekonečna.
@@ -151,11 +152,12 @@ export function combineWithSundays(rawEvents, besiedka, firstDate, lastDate) {
     if(cursor.getDay()===0){
       const day=localDate(cursor);
       const base=services.get(day)||{id:`auto-service-${day}`,event_type:'service',event_date:day,start_time:'10:00',end_time:null,is_published:true,is_cancelled:false,sermon_author:'',sermon_title:'',sermon_description:'',moderator_name:'',worship_leader:''};
-      other.push({...base,start_time:'10:00',besiedka_leader:assignments.get(day)||''});
+      const assigned=assignments.get(day);
+      other.push({...base,start_time:'10:00',besiedka_leader:assigned?.is_cancelled?'':assigned?.responsible_person||'',besiedka_cancelled:Boolean(assigned?.is_cancelled)});
       services.delete(day);
     }
     cursor.setDate(cursor.getDate()+1);
   }
-  for(const value of services.values())other.push({...value,start_time:'10:00',besiedka_leader:assignments.get(value.event_date)||''});
+  for(const value of services.values()){const assigned=assignments.get(value.event_date);other.push({...value,start_time:'10:00',besiedka_leader:assigned?.is_cancelled?'':assigned?.responsible_person||'',besiedka_cancelled:Boolean(assigned?.is_cancelled)});}
   return sortEvents(other);
 }

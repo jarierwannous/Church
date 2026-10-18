@@ -1,4 +1,4 @@
-import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=2';
+import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=6';
 const $=sel=>document.querySelector(sel),form=$('#event-form');
 let events=[],besiedka=[],editingId=null,type='service',busy=false,signedInUser=null,permissions={can_manage_events:true,can_manage_besiedka:true};
 $('#year').textContent=new Date().getFullYear();showConfigProblem('admin-demo-banner');
@@ -34,7 +34,7 @@ function payload(){const service=type==='service';return {
   moderator_name:service?value('#moderator-name'):null,worship_leader:service?value('#worship-leader'):null
 };}
 function validate(p){if(!form.checkValidity()){form.reportValidity();return 'Vyplňte povinné polia.';}if(p.event_type==='service'&&!sundayDate(p.event_date))return 'Bohoslužbu možno naplánovať iba na nedeľu.';if(p.event_type==='service'&&p.is_published&&!fullProgram(p))return 'Pred zverejnením bohoslužby doplňte rečníka, názov a opis slova a moderovanie.';if(p.end_time&&p.end_time<=p.start_time)return 'Čas konca musí byť neskôr ako začiatok.';return '';}
-function friendlyError(error){console.error(error);if(error.code==='23505')return 'Na danú nedeľu už existuje bohoslužba. Vyhľadajte a upravte záznam.';if(error.code==='23514')return 'Údaje nezodpovedajú databázovým pravidlám. Skontrolujte povinné polia a SQL migráciu.';if(error.code==='42501')return 'Tento účet nemá právo vykonať zmenu.';if(error.code==='42P01'||error.code==='PGRST205')return 'Chýba tabuľka z migrácie. Spustite súbor migracia_v2.sql v Supabase.';return error.message||'Nastala chyba pri ukladaní.';}
+function friendlyError(error){console.error(error);if(error.code==='23505')return 'Na danú nedeľu už existuje bohoslužba. Vyhľadajte a upravte záznam.';if(error.code==='23514')return 'Údaje nezodpovedajú databázovým pravidlám. Skontrolujte povinné polia a migracia_v3_besiedka.sql.';if(error.code==='42703'||error.code==='PGRST204')return 'Databáza nemá nové pole pre zrušenie besiedky. Spustite migracia_v3_besiedka.sql.';if(error.code==='42501')return 'Tento účet nemá právo vykonať zmenu.';if(error.code==='42P01'||error.code==='PGRST205')return 'Chýba tabuľka z migrácie. Spustite súbor migracia_v2.sql v Supabase.';return error.message||'Nastala chyba pri ukladaní.';}
 function drawList(){
   const q=$('#admin-search-input').value.toLocaleLowerCase('sk-SK'),today=localDate(new Date());
   const selected=events.filter(e=>!q||[niceTitle(e),e.sermon_title,e.sermon_author,e.responsible_person,e.moderator_name,e.worship_leader].filter(Boolean).some(x=>String(x).toLocaleLowerCase('sk-SK').includes(q)));
@@ -98,25 +98,27 @@ $('#admin-list').addEventListener('click',ev=>{const item=ev.target.closest('[da
 // Samostatný editor besiedky - nevie meniť program bohoslužieb.
 function drawBesiedka(){const html=Array.from({length:12},(_,i)=>nextSunday(i)).map(date=>{
   const assigned=besiedka.find(e=>e.event_date===date),chosen=$('#besiedka-date').value===date;
-  return `<button type="button" class="besiedka-item${chosen?' active':''}" data-sunday="${date}"><span>${escapeHTML(formatDate(date,{day:'numeric',month:'long'}))}</span><strong>${escapeHTML(assigned?.responsible_person||'Nepridelené')}</strong></button>`;
+  return `<button type="button" class="besiedka-item${chosen?' active':''}${assigned?.is_cancelled?' is-cancelled':''}" data-sunday="${date}"><span>${escapeHTML(formatDate(date,{day:'numeric',month:'long'}))}</span><strong>${escapeHTML(assigned?.is_cancelled?'Besiedka zrušená':assigned?.responsible_person||'Nepridelené')}</strong></button>`;
 });$('#besiedka-list').innerHTML=html;}
-function fillBesiedkaDate(){const date=value('#besiedka-date'),assigned=besiedka.find(e=>e.event_date===date);$('#besiedka-person').value=assigned?.responsible_person||'';$('#besiedka-delete').hidden=!assigned;drawBesiedka();}
+function syncBesiedkaFields(){const cancelled=$('#besiedka-cancelled').checked;$('#besiedka-person-group').hidden=cancelled;$('#besiedka-person').required=!cancelled;$('#besiedka-person').disabled=cancelled;}
+function fillBesiedkaDate(){const date=value('#besiedka-date'),assigned=besiedka.find(e=>e.event_date===date);$('#besiedka-person').value=assigned?.responsible_person||'';$('#besiedka-cancelled').checked=Boolean(assigned?.is_cancelled);$('#besiedka-delete').hidden=!assigned;$('#besiedka-delete').textContent=assigned?.is_cancelled?'Odstrániť oznámenie o zrušení':'Odstrániť priradenie';$('#besiedka-error').textContent='';syncBesiedkaFields();drawBesiedka();}
 $('#besiedka-date').addEventListener('change',fillBesiedkaDate);
+$('#besiedka-cancelled').addEventListener('change',syncBesiedkaFields);
 $('#besiedka-list').addEventListener('click',ev=>{const button=ev.target.closest('[data-sunday]');if(button){$('#besiedka-date').value=button.dataset.sunday;fillBesiedkaDate();}});
-$('#besiedka-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!permissions.can_manage_besiedka)return;$('#besiedka-error').textContent='';const date=value('#besiedka-date'),person=value('#besiedka-person');if(!sundayDate(date)){$('#besiedka-error').textContent='Besiedka sa zapisuje na nedeľu.';return;}if(!person){$('#besiedka-error').textContent='Vyplňte zodpovednú osobu.';return;}
+$('#besiedka-form').addEventListener('submit',async ev=>{ev.preventDefault();if(!permissions.can_manage_besiedka)return;$('#besiedka-error').textContent='';const date=value('#besiedka-date'),person=value('#besiedka-person'),cancelled=$('#besiedka-cancelled').checked;if(!sundayDate(date)){$('#besiedka-error').textContent='Besiedka sa zapisuje na nedeľu.';return;}if(!cancelled&&!person){$('#besiedka-error').textContent='Vyplňte zodpovednú osobu alebo označte zrušenie besiedky.';return;}
   $('#besiedka-save').disabled=true;
-  try{await putBesiedka(date,person);await reloadBesiedka();showToast('Besiedka bola uložená a je viditeľná v kalendári.');}
+  try{await putBesiedka(date,person,cancelled);await reloadBesiedka();showToast(cancelled?'Zrušenie besiedky bolo zverejnené.':'Besiedka bola uložená a je viditeľná v kalendári.');}
   catch(err){$('#besiedka-error').textContent=friendlyError(err);showToast('Nepodarilo sa uložiť besiedku.','error');}
   finally{$('#besiedka-save').disabled=false;}
 });
-$('#besiedka-delete').addEventListener('click',async()=>{const date=value('#besiedka-date');if(!sundayDate(date)||!window.confirm(`Odstrániť pridelenie besiedky na ${formatDate(date)}?`))return;
-  try{await putBesiedka(date,'');await reloadBesiedka();showToast('Pridelenie besiedky bolo odstránené.');}catch(err){$('#besiedka-error').textContent=friendlyError(err);}
+$('#besiedka-delete').addEventListener('click',async()=>{const date=value('#besiedka-date'),wasCancelled=Boolean(besiedka.find(e=>e.event_date===date)?.is_cancelled);if(!sundayDate(date)||!window.confirm(wasCancelled?`Odstrániť oznam o zrušení besiedky na ${formatDate(date)}?`:`Odstrániť pridelenie besiedky na ${formatDate(date)}?`))return;
+  try{await putBesiedka(date,'');await reloadBesiedka();showToast(wasCancelled?'Oznam o zrušení besiedky bol odstránený.':'Pridelenie besiedky bolo odstránené.');}catch(err){$('#besiedka-error').textContent=friendlyError(err);}
 });
 function showLogin(message=''){$('#login-view').hidden=false;$('#admin-view').hidden=true;$('#login-error').textContent=message;}
 async function showAdmin(account){
   $('#login-view').hidden=true;$('#admin-view').hidden=false;$('#signed-user').textContent=account?.email||'Ukážkový režim';$('#logout-btn').hidden=!configured;
   $('#pick-besiedka').hidden=!permissions.can_manage_besiedka;$('#pick-service').hidden=!permissions.can_manage_events;$('#pick-general').hidden=!permissions.can_manage_events;$('#manage-events-btn').hidden=!permissions.can_manage_events;
-  clearForm();showStage('home');$('#besiedka-date').value=nextSunday();
+  clearForm();showStage('home');$('#besiedka-date').value=nextSunday();fillBesiedkaDate();
   if(permissions.can_manage_events)await reloadEvents();
   if(permissions.can_manage_besiedka)await reloadBesiedka();
 }

@@ -142,3 +142,16 @@
  .compact-public .quick-topic{flex:1 1 auto}
  .compact-public .quick-speaker{display:none}
 }
+
+/* V6: oznam o zrušenej besiedke */
+.besiedka-cancel-toggle{display:flex;align-items:flex-start;gap:13px;padding:16px 17px;border:1px solid #e3d7cd;background:#fff8f3;border-radius:12px;margin:14px 0 20px;cursor:pointer}
+.besiedka-cancel-toggle input{width:21px;height:21px;flex:0 0 21px;margin:1px 0 0;accent-color:#a35f42;cursor:pointer}
+.besiedka-cancel-toggle span{display:flex;flex-direction:column;gap:5px}
+.besiedka-cancel-toggle strong{font-size:14px;color:#793f31}
+.besiedka-cancel-toggle small{font-size:12px;line-height:1.55;color:#81594a}
+.besiedka-item.is-cancelled{border-color:#e7c8b8;background:#fff3ed}
+.besiedka-item.is-cancelled strong{color:#9b4833}
+.calendar-besiedka-alert{display:block;background:#fff1e8;color:#964e3b;font-size:10px;font-weight:700;padding:3px 6px;border-radius:5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.besiedka-cancel-note{background:#fff1e8;border:1px solid #efd2c1;border-radius:11px;padding:13px 16px;color:#934733;font-size:13px;line-height:1.6;margin:16px 0}
+/* Prednosť natívnemu atribútu hidden aj pri CSS s display:flex/grid */
+[hidden]{display:none!important}
