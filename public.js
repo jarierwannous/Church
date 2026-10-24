@@ -1,4 +1,5 @@
-import {showConfigProblem,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=6';
+import {nextYearICS} from './ics.js?v=8';
+import {showConfigProblem,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=7';
 const $=sel=>document.querySelector(sel);
 const state={raw:[],besiedka:[],events:[],year:new Date().getFullYear(),month:new Date().getMonth(),filter:'all',query:'',selectedDay:null};
 const monthFormat=new Intl.DateTimeFormat('sk-SK',{month:'long',year:'numeric'});
@@ -76,3 +77,87 @@ $('#modal-close').addEventListener('click',closeModal);$('#event-modal').addEven
 document.addEventListener('keydown',ev=>{if(!$('#event-modal').hidden&&ev.key==='Escape')closeModal();if(!$('#event-modal').hidden&&ev.key==='Tab'){const focusables=[...$('#event-modal').querySelectorAll('button,[href],input,[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled);if(!focusables.length)return;const first=focusables[0],last=focusables[focusables.length-1];if(ev.shiftKey&&document.activeElement===first){ev.preventDefault();last.focus();}else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}}});
 async function load(){try{[state.raw,state.besiedka]=await Promise.all([fetchEvents(),fetchBesiedka()]);render();}catch(error){console.error(error);showToast('Nepodarilo sa načítať udalosti. Skontrolujte Supabase a databázovú migráciu.','error');$('#calendar-grid').innerHTML='<p class="empty-state">Nepodarilo sa načítať kalendár.</p>';$('#upcoming-list').innerHTML='<p class="muted">Údaje nie sú dostupné.</p>';$('#hero-highlight').textContent='Kalendár momentálne nie je dostupný.';}}
 load();
+
+
+// Odber kalendára: verejná Edge Function vracia aktuálny súbor iCalendar.
+// V prípade nenakonfigurovaného odberu zostáva dostupný jednorazový export.
+const subscribeDialog=$('#subscribe-modal');
+const subscribeClose=$('#subscribe-close');
+const feedStatus=$('#feed-status');
+const copyFeed=$('#copy-calendar-link');
+const appleFeed=$('#apple-subscribe');
+let feedAddress='';
+let subscribePreviousFocus=null;
+function openSubscribe(){
+  subscribePreviousFocus=document.activeElement;
+  subscribeDialog.hidden=false;
+  document.body.style.overflow='hidden';
+  subscribeClose.focus();
+  void checkFeed();
+}
+function closeSubscribe(){
+  subscribeDialog.hidden=true;
+  document.body.style.overflow='';
+  subscribePreviousFocus?.focus();
+}
+function currentFeedAddress(){
+  const project=String(window.CHURCH_CONFIG?.SUPABASE_URL||'').replace(/\/$/,'');
+  if(!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(project))return '';
+  return project+'/functions/v1/kalendar-ics';
+}
+async function checkFeed(){
+  feedAddress='';
+  copyFeed.disabled=true;
+  appleFeed.setAttribute('aria-disabled','true');
+  appleFeed.removeAttribute('href');
+  feedStatus.textContent='Overujem dostupnosť automatického odberu…';
+  const url=currentFeedAddress();
+  if(!url){feedStatus.textContent='Automatický odber nie je nastavený. Môžete si stiahnuť súbor .ics.';return;}
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+    let response;
+    try{response=await fetch(url,{method:'GET',signal:controller.signal,cache:'no-store'});}
+    finally{clearTimeout(timeout);}
+    if(!response.ok || !String(response.headers.get('content-type')||'').includes('text/calendar') || !(await response.text()).startsWith('BEGIN:VCALENDAR'))throw Error('Neplatná odpoveď kalendára');
+    if(subscribeDialog.hidden)return;
+    feedAddress=url;
+    copyFeed.disabled=false;
+    appleFeed.href=url.replace(/^https:/i,'webcal:');
+    appleFeed.setAttribute('aria-disabled','false');
+    feedStatus.textContent='Automatický odber je pripravený.';
+    feedStatus.classList.add('ready');
+  }catch(err){
+    console.info('Odber ICS ešte nie je dostupný:',err);
+    feedStatus.classList.remove('ready');
+    feedStatus.textContent='Automatický odber ešte nie je aktivovaný v Supabase. Jednorazový export funguje aj bez neho.';
+  }
+}
+$('#open-subscribe').addEventListener('click',openSubscribe);
+subscribeClose.addEventListener('click',closeSubscribe);
+subscribeDialog.addEventListener('click',event=>{if(event.target===subscribeDialog)closeSubscribe();});
+document.addEventListener('keydown',event=>{
+  if(subscribeDialog.hidden)return;
+  if(event.key==='Escape'){event.preventDefault();closeSubscribe();}
+  if(event.key==='Tab'){
+    const els=[...subscribeDialog.querySelectorAll('button:not(:disabled), a[href]')];
+    if(!els.length)return;
+    if(event.shiftKey&&document.activeElement===els[0]){event.preventDefault();els[els.length-1].focus();}
+    else if(!event.shiftKey&&document.activeElement===els[els.length-1]){event.preventDefault();els[0].focus();}
+  }
+});
+copyFeed.addEventListener('click',async()=>{
+  if(!feedAddress)return;
+  try{await navigator.clipboard.writeText(feedAddress);showToast('Odkaz na kalendár bol skopírovaný.');}
+  catch{window.prompt('Skopírujte odkaz na kalendár:',feedAddress);}
+});
+$('#download-ics').addEventListener('click',()=>{
+  if(!state.events.length){showToast('Udalosti nie sú načítané. Skúste obnoviť stránku.','error');return;}
+  const ics=nextYearICS(state.raw,state.besiedka);
+  const blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download='kz-trencin-udalosti.ics';
+  document.body.append(anchor);anchor.click();anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});

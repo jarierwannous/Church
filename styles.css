@@ -155,3 +155,24 @@
 .besiedka-cancel-note{background:#fff1e8;border:1px solid #efd2c1;border-radius:11px;padding:13px 16px;color:#934733;font-size:13px;line-height:1.6;margin:16px 0}
 /* Prednosť natívnemu atribútu hidden aj pri CSS s display:flex/grid */
 [hidden]{display:none!important}
+
+
+/* V8 – nenápadný odber osobného kalendára, bez odkazov na administráciu */
+.nav-subscribe{display:inline-flex;align-items:center;gap:8px;border:1px solid #dfe9df;border-radius:11px;background:#edf4ef;color:#315b4c;padding:11px 14px;font-size:12px;font-weight:740;white-space:nowrap}
+.nav-subscribe:hover{background:#e1eee5;border-color:#b9d1bf}
+.subscribe-dialog{max-width:625px}
+.subscribe-dialog h2{font-size:clamp(24px,3vw,31px);margin:13px 0}
+.subscribe-description{font-size:14px;color:#667c70;line-height:1.65}
+.feed-status{font-size:12px;background:#fff4de;border:1px solid #f2dcbc;border-radius:9px;padding:10px 12px;color:#785b2f;margin:16px 0}
+.feed-status.ready{color:#24654c;background:#ebf7ed;border-color:#d1e8d3}
+.subscribe-options{display:flex;flex-direction:column;border:1px solid #e5ede5;border-radius:14px;overflow:hidden}
+.subscribe-option{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 16px;background:#fff}
+.subscribe-option+.subscribe-option{border-top:1px solid #e9eee8}
+.subscribe-option strong{display:block;font-size:14px;color:#253e35;margin-bottom:6px}
+.subscribe-option p{font-size:12px;line-height:1.55;color:#667d70;margin:0}
+.subscribe-action{font-size:12px;min-width:115px;text-align:center;display:inline-flex;justify-content:center;align-items:center;border-radius:9px;padding:11px 12px;border:1px solid #cbdfcf;background:#ecf5ed;color:#24583f;font-weight:780;white-space:nowrap;flex-shrink:0;cursor:pointer}
+.subscribe-action:hover:not(:disabled):not([aria-disabled="true"]){background:#dcefe2}
+.subscribe-action:disabled,.subscribe-action[aria-disabled="true"]{opacity:.48;cursor:not-allowed;pointer-events:none}
+.subscribe-note{font-size:11px;line-height:1.6;color:#718579;margin:16px 0 0}
+@media(max-width:650px){.site-header .topbar{flex-wrap:wrap;gap:3px;padding-top:12px;padding-bottom:10px}.compact-public .site-header .brand{flex:1 1 100%;max-width:220px}.compact-public .site-header .topnav{width:100%;justify-content:space-between;flex-wrap:wrap;gap:6px}.compact-public .site-header .topnav a{font-size:11px}.nav-subscribe{font-size:11px;padding:9px 10px}.subscribe-option{align-items:stretch;flex-direction:column;gap:10px}.subscribe-action{min-height:40px;align-self:flex-start}.subscribe-dialog{padding:28px 19px}}
+@media(max-width:370px){.compact-public .site-header .topnav a[href="#najblizsie"]{display:none}}
