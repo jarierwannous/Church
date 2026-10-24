@@ -1,4 +1,5 @@
-import {configured,showConfigProblem,getClient,fetchEvents,putEvent,removeEvent,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=6';
+import {lookupNameDay,validMonthDay,displayMonthDay} from './meniny.js?v=9';
+import {configured,showConfigProblem,getClient,fetchPeople,savePerson,deletePerson,fetchEvents,putEvent,removeEvent,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=9';
 const $=sel=>document.querySelector(sel),form=$('#event-form');
 let events=[],besiedka=[],editingId=null,type='service',busy=false,signedInUser=null,permissions={can_manage_events:true,can_manage_besiedka:true};
 $('#year').textContent=new Date().getFullYear();showConfigProblem('admin-demo-banner');
@@ -70,7 +71,7 @@ $('#delete-event').addEventListener('click',async()=>{if(!editingId||busy||!perm
   setBusy(true);try{await removeEvent(editingId);await reloadEvents();clearForm();showStage('home');showToast('Záznam bol odstránený.');}catch(err){showToast(friendlyError(err),'error');}finally{setBusy(false);}
 });
 // Trojkroková administrácia: úvod → typ udalosti → iba príslušný formulár.
-const stages={home:'#admin-home',picker:'#admin-type-picker',editor:'#admin-editor-stage',besiedka:'#admin-besiedka-stage',list:'#admin-list-stage'};
+const stages={home:'#admin-home',picker:'#admin-type-picker',editor:'#admin-editor-stage',besiedka:'#admin-besiedka-stage',list:'#admin-list-stage',people:'#admin-people-stage'};
 function showStage(stage){
   for(const [name,selector] of Object.entries(stages))$(selector).hidden=name!==stage;
   window.scrollTo({top:0,behavior:'instant'});
@@ -86,10 +87,11 @@ function openNew(next){
 }
 $('#add-action').addEventListener('click',()=>showStage('picker'));
 $('#manage-events-btn').addEventListener('click',()=>{if(permissions.can_manage_events)showStage('list');});
+$('#manage-people-btn').addEventListener('click',async()=>{if(!permissions.can_manage_events)return;showStage('people');await reloadPeople();});
 $('#pick-service').addEventListener('click',()=>openNew('service'));
 $('#pick-besiedka').addEventListener('click',()=>openNew('besiedka'));
 $('#pick-general').addEventListener('click',()=>openNew('general'));
-['#back-home-from-picker','#back-home-from-editor','#back-home-from-besiedka','#back-home-from-list'].forEach(id=>$(id).addEventListener('click',()=>{clearForm();showStage('home');}));
+['#back-home-from-picker','#back-home-from-editor','#back-home-from-besiedka','#back-home-from-list','#back-home-from-people'].forEach(id=>$(id).addEventListener('click',()=>{clearForm();showStage('home');}));
 $('#event-published').addEventListener('change',updateRequirements);
 $('#event-date').addEventListener('change',refreshCancellationButton);
 $('#cancel-edit').addEventListener('click',()=>{clearForm();showStage('home');});
@@ -117,7 +119,7 @@ $('#besiedka-delete').addEventListener('click',async()=>{const date=value('#besi
 function showLogin(message=''){$('#login-view').hidden=false;$('#admin-view').hidden=true;$('#login-error').textContent=message;}
 async function showAdmin(account){
   $('#login-view').hidden=true;$('#admin-view').hidden=false;$('#signed-user').textContent=account?.email||'Ukážkový režim';$('#logout-btn').hidden=!configured;
-  $('#pick-besiedka').hidden=!permissions.can_manage_besiedka;$('#pick-service').hidden=!permissions.can_manage_events;$('#pick-general').hidden=!permissions.can_manage_events;$('#manage-events-btn').hidden=!permissions.can_manage_events;
+  $('#pick-besiedka').hidden=!permissions.can_manage_besiedka;$('#pick-service').hidden=!permissions.can_manage_events;$('#pick-general').hidden=!permissions.can_manage_events;$('#manage-events-btn').hidden=!permissions.can_manage_events;$('#manage-people-btn').hidden=!permissions.can_manage_events;
   clearForm();showStage('home');$('#besiedka-date').value=nextSunday();fillBesiedkaDate();
   if(permissions.can_manage_events)await reloadEvents();
   if(permissions.can_manage_besiedka)await reloadBesiedka();
@@ -134,6 +136,79 @@ $('#login-form').addEventListener('submit',async ev=>{ev.preventDefault();const 
   signedInUser=authorized.user;permissions=authorized.permissions;await showAdmin(signedInUser);$('#login-password').value='';
 }catch(err){console.error(err);showLogin('Prihlásenie alebo načítanie práv zlyhalo. Skontrolujte SQL migráciu, konfiguráciu a oprávnenia.');}finally{button.disabled=false;}});
 $('#logout-btn').addEventListener('click',async()=>{try{const client=await getClient();await client.auth.signOut();signedInUser=null;events=[];besiedka=[];showLogin();showToast('Boli ste odhlásení.');}catch(err){showToast('Odhlásenie zlyhalo.','error');}});
+
+// V9 – evidencia menín/narodenín; iba účty s can_manage_events.
+let people=[],personEditing=null,personBusy=false;
+const months=['január','február','marec','apríl','máj','jún','júl','august','september','október','november','december'];
+const personDay=$('#person-birth-day'),personMonth=$('#person-birth-month');
+personMonth.innerHTML='<option value="">Mesiac…</option>'+months.map((m,i)=>`<option value="${i+1}">${m}</option>`).join('');
+personDay.innerHTML='<option value="">Deň…</option>'+Array.from({length:31},(_,i)=>`<option value="${i+1}">${i+1}.</option>`).join('');
+function resetPersonForm(){
+  personEditing=null;$('#people-form').reset();$('#person-name-day-status').textContent='Meniny sa určia pri uložení. Ak slovenský kalendár meno nepozná, môžete zadať dátum ručne.';
+  $('#person-delete').hidden=true;$('#people-error').textContent='';$('#person-save').textContent='Uložiť osobu →';
+}
+function validatePersonBirthday(){
+  const m=Number(personMonth.value),d=Number(personDay.value);
+  return validMonthDay(m,d)?null:'Vyberte platný deň a mesiac narodenia.';
+}
+function dateOverride(str){
+  const match=str.trim().match(/^(\d{1,2})\.(\d{1,2})\.?$/);
+  if(!match)return null;
+  const day=Number(match[1]),month=Number(match[2]);
+  return validMonthDay(month,day)?{month,day}:null;
+}
+function drawPeople(){
+  $('#people-count').textContent=`${people.length} osôb`;
+  $('#people-list').innerHTML=people.length?people.map(person=>`<button type="button" class="person-entry" data-person-id="${escapeHTML(person.id)}"><span><strong>${escapeHTML(person.full_name)}</strong><small>Narodeniny ${displayMonthDay(person.birth_month,person.birth_day)} · Meniny ${person.nameday_month?displayMonthDay(person.nameday_month,person.nameday_day):'bez priradenia'}</small></span><span aria-hidden="true">✎</span></button>`).join(''):'<div class="empty-state">Zatiaľ tu nie je žiadna osoba. Pridajte prvú pomocou formulára.</div>';
+}
+async function reloadPeople(){
+  try{people=await fetchPeople();drawPeople();}
+  catch(err){$('#people-error').textContent='Nedá sa načítať evidencia oslávencov: '+friendlyError(err);}
+}
+$('#people-list').addEventListener('click',event=>{
+  const btn=event.target.closest('[data-person-id]');if(!btn)return;
+  const p=people.find(x=>String(x.id)===btn.dataset.personId);if(!p)return;
+  personEditing=p.id;$('#person-full-name').value=p.full_name;$('#person-given-name').value=p.given_name;
+  personMonth.value=String(p.birth_month);personDay.value=String(p.birth_day);
+  $('#person-consent').checked=Boolean(p.public_consent);$('#person-name-day-override').value='';
+  $('#person-name-day-status').textContent=p.nameday_month?`Aktuálne uložené meniny: ${displayMonthDay(p.nameday_month,p.nameday_day)}. Ak chcete dátum zmeniť, zadajte ho ručne.`:'Meniny zatiaľ neboli nájdené. Môžete určiť dátum ručne.';
+  $('#person-delete').hidden=false;$('#person-save').textContent='Uložiť zmeny →';$('#people-error').textContent='';
+  $('#people-form').scrollIntoView({behavior:'smooth',block:'start'});
+});
+$('#person-reset').addEventListener('click',resetPersonForm);
+$('#people-form').addEventListener('submit',async e=>{
+  e.preventDefault();if(personBusy||!permissions.can_manage_events)return;
+  $('#people-error').textContent='';
+  const error=validatePersonBirthday();if(error){$('#people-error').textContent=error;return;}
+  const full_name=value('#person-full-name'),given_name=value('#person-given-name');
+  if(!full_name||!given_name||!$('#person-consent').checked){$('#people-error').textContent='Vyplňte údaje a potvrďte súhlas.';return;}
+  const overrideText=value('#person-name-day-override');let resolved=null;
+  if(overrideText){resolved=dateOverride(overrideText);if(!resolved){$('#people-error').textContent='Zadajte platný dátum menín (napr. 25.11.).';return;}}
+  personBusy=true;$('#person-save').disabled=true;$('#person-save').textContent='Ukladám…';
+  try{
+    if(!resolved){
+      try{resolved=await lookupNameDay(given_name);}
+      catch(err){console.warn('Kalendár menín nie je dostupný:',err);}
+    }
+    const previous=people.find(p=>p.id===personEditing);
+    // Ak zdroj nie je dostupný a krstné meno sa nezmenilo, ponecháme pôvodnú hodnotu.
+    if(!resolved && previous?.given_name===given_name && previous.nameday_month)resolved={month:previous.nameday_month,day:previous.nameday_day};
+    const item={full_name,given_name,birth_month:Number(personMonth.value),birth_day:Number(personDay.value),
+      nameday_month:resolved?.month??null,nameday_day:resolved?.day??null,public_consent:true};
+    await savePerson(item,personEditing);await reloadPeople();resetPersonForm();
+    showToast(resolved?`Osoba uložená. Meniny: ${displayMonthDay(resolved.month,resolved.day)}`:'Osoba uložená bez menín. Dátum môžete doplniť ručne.');
+  }catch(err){$('#people-error').textContent=friendlyError(err);}
+  finally{personBusy=false;$('#person-save').disabled=false;if(personEditing)$('#person-save').textContent='Uložiť zmeny →';}
+});
+$('#person-delete').addEventListener('click',async()=>{
+  if(!personEditing||!permissions.can_manage_events||personBusy)return;
+  const p=people.find(x=>x.id===personEditing);if(!p||!window.confirm(`Odstrániť osobu „${p.full_name}“ zo zoznamu oslávencov?`))return;
+  personBusy=true;
+  try{await deletePerson(personEditing);await reloadPeople();resetPersonForm();showToast('Osoba bola odstránená.');}
+  catch(err){$('#people-error').textContent=friendlyError(err);}
+  finally{personBusy=false;}
+});
+
 async function init(){
   if(!configured){await showAdmin(null);return;}
   try{const authorized=await authorizedUser();if(!authorized){const client=await getClient();const {data:{session}}=await client.auth.getSession();if(session)await client.auth.signOut();showLogin();return;}

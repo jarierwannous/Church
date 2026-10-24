@@ -175,3 +175,33 @@ export function combineWithSundays(rawEvents, besiedka, firstDate, lastDate) {
   for(const value of services.values()){const assigned=assignments.get(value.event_date);other.push({...value,start_time:'10:00',besiedka_leader:assigned?.is_cancelled?'':assigned?.responsible_person||'',besiedka_cancelled:Boolean(assigned?.is_cancelled)});}
   return sortEvents(other);
 }
+
+
+// Evidencia oslávencov. Anonymný návštevník nikdy nečíta church_people.
+const personsDemoKey='kzt-oslavenci-demo-v1';
+function demoPeople(){try{return JSON.parse(localStorage.getItem(personsDemoKey))||[];}catch{return [];}}
+export async function fetchPeople(){
+  if(!configured)return demoPeople();
+  const client=await getClient();
+  const {data,error}=await client.from('church_people').select('id,full_name,given_name,birth_month,birth_day,nameday_month,nameday_day,public_consent').order('full_name');
+  if(error)throw error;return data||[];
+}
+export async function savePerson(item,id=null){
+  if(!configured){let people=demoPeople();const updated={...item,id:id||`demo-person-${Date.now()}`};people=id?people.map(p=>p.id===id?updated:p):[...people,updated];localStorage.setItem(personsDemoKey,JSON.stringify(people));return updated;}
+  const client=await getClient();
+  const query=id?client.from('church_people').update(item).eq('id',id):client.from('church_people').insert(item);
+  const {data,error}=await query.select().single();if(error)throw error;return data;
+}
+export async function deletePerson(id){
+  if(!configured){localStorage.setItem(personsDemoKey,JSON.stringify(demoPeople().filter(p=>p.id!==id)));return;}
+  const client=await getClient();const {error}=await client.from('church_people').delete().eq('id',id);if(error)throw error;
+}
+export async function fetchTodaysCelebrations(){
+  if(!configured){
+    const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Bratislava',month:'numeric',day:'numeric'}).formatToParts(new Date());
+    const month=Number(parts.find(p=>p.type==='month')?.value),day=Number(parts.find(p=>p.type==='day')?.value);
+    return demoPeople().filter(p=>p.public_consent&&((p.birth_month===month&&p.birth_day===day)||(p.nameday_month===month&&p.nameday_day===day)))
+      .map(p=>({full_name:p.full_name,birthday_today:p.birth_month===month&&p.birth_day===day,nameday_today:p.nameday_month===month&&p.nameday_day===day}));
+  }
+  const client=await getClient();const {data,error}=await client.rpc('today_church_celebrations');if(error)throw error;return data||[];
+}
