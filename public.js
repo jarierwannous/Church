@@ -1,5 +1,5 @@
-import {nextYearICS} from './ics.js?v=9';
-import {showConfigProblem,fetchTodaysCelebrations,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=9';
+import {nextYearICS} from './ics.js?v=10';
+import {showConfigProblem,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=10';
 const $=sel=>document.querySelector(sel);
 const state={raw:[],besiedka:[],events:[],year:new Date().getFullYear(),month:new Date().getMonth(),filter:'all',query:'',selectedDay:null};
 const monthFormat=new Intl.DateTimeFormat('sk-SK',{month:'long',year:'numeric'});
@@ -163,17 +163,3 @@ $('#download-ics').addEventListener('click',()=>{
 });
 
 
-async function showTodaysCelebrations(){
-  const names=$('#today-namedays'),births=$('#today-birthdays');
-  if(!names||!births)return;
-  try{
-    const all=await fetchTodaysCelebrations();
-    names.textContent=all.filter(x=>x.nameday_today).map(x=>x.full_name).join(', ')||'nikto z evidovaných';
-    births.textContent=all.filter(x=>x.birthday_today).map(x=>x.full_name).join(', ')||'nikto z evidovaných';
-  }catch(error){
-    console.warn('Nepodarilo sa načítať dnešných oslávencov:',error);
-    names.textContent='nedostupné';births.textContent='nedostupné';
-  }
-}
-showTodaysCelebrations();
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)showTodaysCelebrations();});

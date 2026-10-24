@@ -1,6 +1,6 @@
 // Export verejných udalostí do štandardného kalendára iCalendar.
 // Samostatný súbor prehliadača: neobsahuje kľúče ani interné účty.
-import {combineWithSundays, localDate, addDays} from './shared.js?v=7';
+import {combineWithSundays, localDate, addDays} from './shared.js?v=10';
 
 const stamp = date => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 const escapeText = value => String(value ?? '').replace(/\r\n?/g, '\n').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');

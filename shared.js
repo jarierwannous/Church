@@ -77,11 +77,47 @@ function demoGet() {
 export async function fetchEvents(all=false) {
   if (!configured) return sortEvents(demoGet().filter(e=>all || e.is_published));
   const client = await getClient();
-  let request = client.from('events').select('*').order('event_date', {ascending:true}).order('start_time', {ascending:true});
-  if (!all) request = request.eq('is_published',true);
-  const {data,error} = await request;
-  if (error) throw error;
-  return data || [];
+  const result=[],pageSize=500;
+  for(let page=0;page<40;page++){
+    let request=client.from('events').select('*')
+      .order('event_date',{ascending:true}).order('start_time',{ascending:true})
+      .order('id',{ascending:true}).range(page*pageSize,(page+1)*pageSize-1);
+    if(!all)request=request.eq('is_published',true);
+    const {data,error}=await request;
+    if(error)throw error;
+    result.push(...(data||[]));
+    if((data||[]).length<pageSize)return result;
+  }
+  throw new Error('Kalendár obsahuje viac ako 20 000 udalostí. Kontaktujte správcu.');
+}
+// Jedna databázová operácia INSERT vytvorí všetky termíny série naraz.
+export async function putRecurringEvents(entries) {
+  if(!Array.isArray(entries)||entries.length<2||entries.length>160)throw new Error('Séria musí mať 2 až 160 termínov.');
+  if(!configured){
+    const list=demoGet();const added=entries.map((e,i)=>({...e,id:`demo-${Date.now()}-${i}`}));
+    localStorage.setItem(demoKey,JSON.stringify([...list,...added]));return added;
+  }
+  const client=await getClient();const {data,error}=await client.from('events').insert(entries).select('id');
+  if(error)throw error;return data;
+}
+export async function removeSeries(seriesId) {
+  if(!seriesId)throw new Error('Chýba identifikátor série.');
+  if(!configured){localStorage.setItem(demoKey,JSON.stringify(demoGet().filter(e=>e.series_id!==seriesId)));return;}
+  const client=await getClient();const {data,error}=await client.from('events').delete().eq('series_id',seriesId).select('id');
+  if(error)throw error;if(!data?.length)throw new Error('Nepodarilo sa odstrániť sériu alebo nemáte oprávnenie.');
+}
+export async function shiftFollowingEvents(selectedId,entry){
+  if(!configured){
+    const {shiftSeriesLocally}=await import('./recurrence.js?v=10');
+    localStorage.setItem(demoKey,JSON.stringify(shiftSeriesLocally(demoGet(),selectedId,entry)));return;
+  }
+  const client=await getClient();
+  const {data,error}=await client.rpc('shift_following_events',{
+    p_event_id:selectedId,p_date:entry.event_date,p_time:entry.start_time,p_end_time:entry.end_time,
+    p_title:entry.title,p_description:entry.description,
+    p_responsible_person:entry.responsible_person,p_is_published:entry.is_published
+  });
+  if(error)throw error;if(!data)throw new Error('Žiadne termíny neboli posunuté.');return data;
 }
 export async function putEvent(entry,id=null) {
   if (!configured) {
@@ -196,12 +232,4 @@ export async function deletePerson(id){
   if(!configured){localStorage.setItem(personsDemoKey,JSON.stringify(demoPeople().filter(p=>p.id!==id)));return;}
   const client=await getClient();const {error}=await client.from('church_people').delete().eq('id',id);if(error)throw error;
 }
-export async function fetchTodaysCelebrations(){
-  if(!configured){
-    const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Bratislava',month:'numeric',day:'numeric'}).formatToParts(new Date());
-    const month=Number(parts.find(p=>p.type==='month')?.value),day=Number(parts.find(p=>p.type==='day')?.value);
-    return demoPeople().filter(p=>p.public_consent&&((p.birth_month===month&&p.birth_day===day)||(p.nameday_month===month&&p.nameday_day===day)))
-      .map(p=>({full_name:p.full_name,birthday_today:p.birth_month===month&&p.birth_day===day,nameday_today:p.nameday_month===month&&p.nameday_day===day}));
-  }
-  const client=await getClient();const {data,error}=await client.rpc('today_church_celebrations');if(error)throw error;return data||[];
-}
+// Osobná evidencia je iba pre administráciu. Verejný prehľad oslávencov je vo v10 vypnutý.

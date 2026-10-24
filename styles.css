@@ -197,3 +197,14 @@
 .person-entry strong{display:block;font-size:15px}
 .person-entry small{display:block;color:#73827a;font-size:12px;margin-top:4px}
 @media(max-width:680px){.celebrations-inner{gap:6px 14px;padding-top:10px;padding-bottom:10px}.celebrations-label{width:100%}.celebrations-group{width:100%}.person-entry{padding:12px}}
+
+/* V10 – jednoduché nastavenie opakovaných akcií. */
+.repeat-panel{padding:1rem 1.1rem;margin:1.15rem 0;border:1px solid #dbe6df;background:#f5f9f6;border-radius:14px}
+.repeat-panel .field-divider{margin-top:0}
+.repeat-panel select,.repeat-panel input[type=date]{width:100%;padding:12px;border-radius:9px;border:1px solid #b8ccc2;background:white;color:#173d37;font:inherit;min-height:44px}
+.repeat-count{font-size:.9rem;font-weight:600;color:#245d42;margin:.5rem 0 0}
+.repeat-shift-option{display:flex;align-items:flex-start;gap:.8rem;cursor:pointer;line-height:1.4}
+.repeat-shift-option input{width:21px;height:21px;flex-shrink:0;margin-top:3px;accent-color:#173d37}
+.repeat-shift-option strong,.repeat-shift-option small{display:block}
+.repeat-shift-option small{font-size:.87rem;line-height:1.5;color:#546660;margin-top:5px}
+@media(max-width:550px){.repeat-panel{padding:.85rem}.repeat-shift-option{gap:.5rem}}
