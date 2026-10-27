@@ -33,6 +33,25 @@ export async function getClient() {
     createClient(projectUrl.replace(/\/$/, ''), publicKey, {auth: {persistSession: true, autoRefreshToken: true}}));
   return pendingClient;
 }
+const kindDemoKey='kzt-event-kinds-v11';
+const builtinKinds=[{id:'builtin-youth',name:'Mládež',parent_id:null},{id:'builtin-group',name:'Skupinka',parent_id:null}];
+function localEventKinds(){
+  try{const saved=JSON.parse(localStorage.getItem(kindDemoKey));if(Array.isArray(saved))return [...builtinKinds,...saved.filter(k=>!builtinKinds.some(x=>x.name===k.name&&!k.parent_id))];}
+  catch{} return [...builtinKinds];
+}
+export async function fetchEventKinds(){
+  if(!configured)return localEventKinds();
+  const client=await getClient();
+  const {data,error}=await client.from('event_kinds').select('id,name,parent_id').order('name');
+  if(error)throw error;return data||[];
+}
+export async function addEventKind(name,parent_id=null){
+  const normalized=String(name||'').trim();if(!normalized||normalized.length>80)throw new Error('Neplatný názov druhu akcie.');
+  if(!configured){const record={id:`kind-${Date.now()}-${Math.random().toString(36).slice(2)}`,name:normalized,parent_id};
+    const custom=localEventKinds().filter(k=>!k.id.startsWith('builtin-'));custom.push(record);localStorage.setItem(kindDemoKey,JSON.stringify(custom));return record;}
+  const client=await getClient();const {data,error}=await client.from('event_kinds').insert({name:normalized,parent_id}).select('id,name,parent_id').single();
+  if(error)throw error;return data;
+}
 // Jednoduchá viditeľná diagnostika, bez zobrazovania kľúča.
 export function showConfigProblem(bannerId) {
   if (configured) return;
@@ -108,14 +127,15 @@ export async function removeSeries(seriesId) {
 }
 export async function shiftFollowingEvents(selectedId,entry){
   if(!configured){
-    const {shiftSeriesLocally}=await import('./recurrence.js?v=10');
+    const {shiftSeriesLocally}=await import('./recurrence.js?v=11');
     localStorage.setItem(demoKey,JSON.stringify(shiftSeriesLocally(demoGet(),selectedId,entry)));return;
   }
   const client=await getClient();
-  const {data,error}=await client.rpc('shift_following_events',{
+  const {data,error}=await client.rpc('shift_following_events_v11',{
     p_event_id:selectedId,p_date:entry.event_date,p_time:entry.start_time,p_end_time:entry.end_time,
     p_title:entry.title,p_description:entry.description,
-    p_responsible_person:entry.responsible_person,p_is_published:entry.is_published
+    p_responsible_person:entry.responsible_person,p_is_published:entry.is_published,
+    p_event_category:entry.event_category,p_event_group:entry.event_group
   });
   if(error)throw error;if(!data)throw new Error('Žiadne termíny neboli posunuté.');return data;
 }

@@ -1,6 +1,6 @@
 // Export verejných udalostí do štandardného kalendára iCalendar.
 // Samostatný súbor prehliadača: neobsahuje kľúče ani interné účty.
-import {combineWithSundays, localDate, addDays} from './shared.js?v=10';
+import {combineWithSundays, localDate, addDays} from './shared.js?v=11';
 
 const stamp = date => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 const escapeText = value => String(value ?? '').replace(/\r\n?/g, '\n').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
@@ -35,6 +35,7 @@ export function buildICS(rawEvents, besiedka, firstDate, lastDate, timestamp=new
     const sunday=e.event_type==='service';
     const uid=sunday?`bohosluzba-${e.event_date}@kz-trencin-kalendar`:`akcia-${e.id}@kz-trencin-kalendar`;
     const title=sunday?(e.is_cancelled?'Bohoslužba zrušená':`Bohoslužba${e.sermon_title?' – '+e.sermon_title:''}`):e.title;
+    const category=sunday?'':(e.event_category==='Skupinka'&&e.event_group?`Skupinka – ${e.event_group}`:e.event_category||'Iná akcia');
     const desc=sunday?(e.is_cancelled?'Bohoslužba sa túto nedeľu nekoná.':[
       e.sermon_title&&`Hlavné slovo: ${e.sermon_title}`,
       e.sermon_author&&`Rečník: ${e.sermon_author}`,
@@ -42,10 +43,10 @@ export function buildICS(rawEvents, besiedka, firstDate, lastDate, timestamp=new
       e.moderator_name&&`Moderovanie: ${e.moderator_name}`,
       e.besiedka_cancelled?'Besiedka: zrušená':e.besiedka_leader&&`Besiedka: ${e.besiedka_leader}`,
       e.worship_leader&&`Vedenie chvál: ${e.worship_leader}`
-    ].filter(Boolean).join('\n')):[e.description,e.responsible_person&&`Zodpovedná osoba: ${e.responsible_person}`].filter(Boolean).join('\n');
+    ].filter(Boolean).join('\n')):[`Druh: ${category}`,e.description,e.responsible_person&&`Zodpovedná osoba: ${e.responsible_person}`].filter(Boolean).join('\n');
     lines.push('BEGIN:VEVENT','UID:'+uid,'DTSTAMP:'+stamp(timestamp),
       'DTSTART;TZID=Europe/Bratislava:'+dt(e.event_date,sunday?'10:00':e.start_time),
-      'SUMMARY:'+escapeText(title),'DESCRIPTION:'+escapeText(desc));
+      'SUMMARY:'+escapeText(sunday?title:`${category}: ${title}`),'DESCRIPTION:'+escapeText(desc));
     if(e.end_time)lines.push('DTEND;TZID=Europe/Bratislava:'+dt(e.event_date,e.end_time));
     if(e.is_cancelled)lines.push('STATUS:CANCELLED');
     else lines.push('STATUS:CONFIRMED');

@@ -208,3 +208,16 @@
 .repeat-shift-option strong,.repeat-shift-option small{display:block}
 .repeat-shift-option small{font-size:.87rem;line-height:1.5;color:#546660;margin-top:5px}
 @media(max-width:550px){.repeat-panel{padding:.85rem}.repeat-shift-option{gap:.5rem}}
+
+/* V11 – kategórie zborových akcií a druhy skupiniek. */
+.simple-admin #extra-kind-cards{display:grid;gap:13px}
+.simple-admin .kind-create-area{max-width:690px;margin:20px auto 0;padding:12px 4px}
+.simple-admin .kind-create-area .admin-link-button{margin:0}
+.simple-admin .kind-create-area label,.simple-admin #general-group-zone>label{font-size:13px;display:block;margin-bottom:8px;font-weight:700;color:#315444}
+.simple-admin .inline-kind-form{display:flex;gap:9px;align-items:center;margin-top:9px}
+.simple-admin .inline-kind-form input{flex:1;min-width:0;min-height:44px;padding:10px 13px;border:1px solid #becfc5;border-radius:10px;font:inherit;background:#fff}
+.simple-admin .kind-select{width:100%;min-height:46px;border:1px solid #becfc5;border-radius:10px;padding:11px 13px;background:white;color:#173d37;font:inherit}
+.simple-admin #general-group-zone{padding:12px 15px;border-radius:12px;background:#f4f9f5;border:1px solid #dfeae2}
+.simple-admin .group-add-toggle{margin:9px 0 0;padding:5px 0;font-size:13px}
+.kind-card-icon.youth{background:#e8f2fc;color:#326b98}.kind-card-icon.group{background:#f1eafa;color:#725794}
+@media(max-width:540px){.simple-admin .inline-kind-form{flex-direction:column;align-items:stretch}.simple-admin .inline-kind-form button{width:100%}}

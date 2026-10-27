@@ -5,7 +5,7 @@
 <meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#173d37" name="theme-color"/>
 <title>Správa udalostí | Kresťanský zbor Trenčín</title>
 <meta name="robots" content="noindex,nofollow"/>
-<link href="styles.css?v=10" rel="stylesheet"/>
+<link href="styles.css?v=11" rel="stylesheet"/>
 </head>
 <body class="admin-body simple-admin branded-admin">
 <header class="site-header admin-header"><div class="shell topbar"><a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – verejný kalendár"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a><nav class="topnav"><a href="index.html"><span class="nav-back-long">← Verejný kalendár</span><span class="nav-back-short">← Kalendár</span></a><span class="admin-pill">Administrácia</span></nav></div></header>
@@ -21,7 +21,7 @@
 <div class="admin-home-mark" aria-hidden="true"><img src="logo.svg" alt="" width="408" height="74"></div>
 <div class="eyebrow">KRESŤANSKÝ ZBOR TRENČÍN</div>
 <h1 id="home-title">Plánovanie <em>udalostí</em></h1>
-<p>Jednoducho pridajte bohoslužbu, besiedku alebo inú zborovú akciu.</p>
+<p>Pridajte bohoslužbu, besiedku, mládež, skupinku alebo inú zborovú akciu.</p>
 <button class="primary-button admin-add-btn" id="add-action" type="button"><span aria-hidden="true">＋</span> Pridať akciu <span aria-hidden="true">→</span></button>
 <button class="admin-link-button" id="manage-events-btn" type="button">Upraviť naplánované udalosti <span aria-hidden="true">→</span></button>
 <button class="admin-link-button" id="manage-people-btn" type="button">Meniny a narodeniny ľudí v zbore <span aria-hidden="true">→</span></button>
@@ -32,7 +32,15 @@
 <div aria-label="Výber typu udalosti" class="admin-kind-grid" role="group">
 <button class="admin-kind-card" data-permission="events" id="pick-service" type="button"><span aria-hidden="true" class="kind-card-icon service">✝</span><span class="kind-card-text"><strong>Bohoslužba</strong><small>Nedeľa o 10:00 · hlavné slovo, moderovanie, chvály</small></span><span aria-hidden="true" class="kind-card-arrow">→</span></button>
 <button class="admin-kind-card" data-permission="besiedka" id="pick-besiedka" type="button"><span aria-hidden="true" class="kind-card-icon sunday">♧</span><span class="kind-card-text"><strong>Besiedka</strong><small>Nedeľa · zodpovedná osoba</small></span><span aria-hidden="true" class="kind-card-arrow">→</span></button>
+<button class="admin-kind-card" data-permission="events" id="pick-youth" type="button"><span aria-hidden="true" class="kind-card-icon youth">◎</span><span class="kind-card-text"><strong>Mládež</strong><small>Stretnutia mládeže · jednorazové aj opakované</small></span><span aria-hidden="true" class="kind-card-arrow">→</span></button>
+<button class="admin-kind-card" data-permission="events" id="pick-group" type="button"><span aria-hidden="true" class="kind-card-icon group">♧</span><span class="kind-card-text"><strong>Skupinka</strong><small>Vyberte druh skupinky alebo vytvorte nový</small></span><span aria-hidden="true" class="kind-card-arrow">→</span></button>
 <button class="admin-kind-card" data-permission="events" id="pick-general" type="button"><span aria-hidden="true" class="kind-card-icon general">✳</span><span class="kind-card-text"><strong>Iná akcia</strong><small>Dátum, čas, názov, opis a zodpovedná osoba</small></span><span aria-hidden="true" class="kind-card-arrow">→</span></button>
+<div id="extra-kind-cards"></div>
+<div class="kind-create-area" id="kind-create-area" data-permission="events">
+<button type="button" class="admin-link-button" id="new-root-kind-toggle">+ Pridať ďalší druh akcie</button>
+<div id="new-root-kind-form" hidden><label for="new-root-kind-name">Názov nového druhu</label><div class="inline-kind-form"><input id="new-root-kind-name" maxlength="80" placeholder="Napr. Modlitebné stretnutie"/><button class="ghost-button" id="save-root-kind" type="button">Pridať</button></div></div>
+<p class="form-error" id="kind-error" role="alert"></p>
+</div>
 </div>
 </section>
 <section aria-label="Formulár udalosti" class="admin-stage" hidden="" id="admin-editor-stage">
@@ -41,7 +49,11 @@
 <form id="event-form">
 <div class="two-fields"><div class="input-group"><label for="event-date">Dátum <span class="required">*</span></label><input id="event-date" required="" type="date"/></div><div class="input-group"><label for="event-time">Začiatok <span class="required">*</span></label><input id="event-time" required="" type="time"/><small class="helper-note" id="service-time-hint">Bohoslužby sa vždy začínajú o 10:00.</small></div></div><div class="input-group"><label for="event-end">Koniec (nepovinné)</label><input id="event-end" type="time"/></div>
 <div id="service-fields"><div class="field-divider"><span>HLAVNÉ SLOVO</span></div><div class="input-group"><label for="sermon-author">Rečník / autor <span class="required">*</span></label><input id="sermon-author" maxlength="140" placeholder="Meno a priezvisko" type="text"/></div><div class="input-group"><label for="sermon-title">Názov kázne <span class="required">*</span></label><input id="sermon-title" maxlength="200" placeholder="Téma hlavného slova" type="text"/></div><div class="input-group"><label for="sermon-desc">Krátky opis <span class="required">*</span></label><textarea id="sermon-desc" maxlength="1000" placeholder="O čom bude hlavné slovo…" rows="3"></textarea></div><div class="field-divider"><span>SLUŽBY POČAS BOHOSLUŽBY</span></div><div class="input-group"><label for="moderator-name">Moderovanie <span class="required">*</span></label><input id="moderator-name" maxlength="140" placeholder="Zodpovedná osoba" type="text"/></div><p class="helper-note service-note">Besiedka sa vypĺňa samostatne v časti „Besiedka“ a môže ju spravovať aj iná poverená osoba.</p><div class="input-group"><label for="worship-leader">Vedenie chvál (nepovinné)</label><input id="worship-leader" maxlength="140" placeholder="Zodpovedná osoba" type="text"/></div></div>
-<div hidden="" id="general-fields"><div class="field-divider"><span>INFORMÁCIE O AKCII</span></div><div class="input-group"><label for="general-title">Názov akcie <span class="required">*</span></label><input id="general-title" maxlength="200" placeholder="Napr. Spoločné stretnutie" type="text"/></div><div class="input-group"><label for="general-responsible">Zodpovedná osoba <span class="required">*</span></label><input id="general-responsible" maxlength="140" placeholder="Meno a priezvisko" type="text"/></div><div class="input-group"><label for="general-desc">Opis akcie <span class="required">*</span></label><textarea id="general-desc" maxlength="2000" placeholder="Miesto, program a ďalšie praktické informácie…" rows="4"></textarea></div><div class="repeat-panel" id="repeat-create-zone" hidden>
+<div hidden="" id="general-fields"><div class="input-group"><label for="general-category">Druh akcie</label><select id="general-category" class="kind-select"></select></div>
+<div class="input-group" id="general-group-zone" hidden><label for="general-group-kind">Druh skupinky</label><select id="general-group-kind" class="kind-select"></select>
+<button class="admin-link-button group-add-toggle" id="new-group-kind-toggle" type="button">+ Pridať druh skupinky</button>
+<div id="new-group-kind-form" hidden><label for="new-group-kind-name">Nový druh skupinky</label><div class="inline-kind-form"><input id="new-group-kind-name" maxlength="80" placeholder="Napr. Rodinná skupinka"/><button class="ghost-button" id="save-group-kind" type="button">Pridať</button></div></div>
+<p class="form-error" id="group-kind-error" role="alert"></p></div><div class="field-divider"><span>INFORMÁCIE O AKCII</span></div><div class="input-group"><label for="general-title">Názov akcie <span class="required">*</span></label><input id="general-title" maxlength="200" placeholder="Napr. Spoločné stretnutie" type="text"/></div><div class="input-group"><label for="general-responsible">Zodpovedná osoba <span class="required">*</span></label><input id="general-responsible" maxlength="140" placeholder="Meno a priezvisko" type="text"/></div><div class="input-group"><label for="general-desc">Opis akcie <span class="required">*</span></label><textarea id="general-desc" maxlength="2000" placeholder="Miesto, program a ďalšie praktické informácie…" rows="4"></textarea></div><div class="repeat-panel" id="repeat-create-zone" hidden>
   <div class="field-divider"><span>OPAKOVANIE AKCIE</span></div>
   <div class="input-group"><label for="repeat-frequency">Opakovanie</label>
     <select id="repeat-frequency"><option value="none">Neopakuje sa</option><option value="daily">Každý deň</option><option value="weekly">Každý týždeň</option><option value="biweekly">Každé 2 týždne</option><option value="fourweekly">Každé 4 týždne</option><option value="monthly">Každý mesiac (rovnaký deň mesiaca)</option></select>
@@ -74,9 +86,9 @@
   <button class="admin-back" id="back-home-from-people" type="button">← Späť na úvod</button>
   <section class="editor-card">
     <div class="editor-head"><div><div class="eyebrow">ZOZNAM OSLÁVENCOV</div><h2 id="people-heading">Meniny a narodeniny</h2></div></div>
-    <p class="people-privacy-note">Mená sa na verejnej stránke ukazujú iba v deň oslavy. Zaznamenávame iba deň a mesiac narodenín, nie rok ani vek. Pridávajte iba osoby, ktoré so zverejnením súhlasili.</p>
+    <p class="people-privacy-note">Evidencia je zatiaľ iba interná. Meniny a narodeniny sa na verejnom kalendári ani v odoberanom ICS nezverejňujú. Uchovávame iba deň a mesiac narodenín, nie rok ani vek.</p>
     <form id="people-form">
-      <div class="input-group"><label for="person-full-name">Meno zobrazované verejne *</label><input id="person-full-name" maxlength="140" required placeholder="Meno a priezvisko" autocomplete="off"></div>
+      <div class="input-group"><label for="person-full-name">Meno osoby *</label><input id="person-full-name" maxlength="140" required placeholder="Meno a priezvisko" autocomplete="off"></div>
       <div class="input-group"><label for="person-given-name">Krstné meno pre meniny *</label><input id="person-given-name" maxlength="80" required placeholder="Napr. Katarína" autocomplete="off"><small class="helper-note">Používa sa na vyhľadanie v slovenskom meninovom kalendári.</small></div>
       <div class="input-group"><label>Narodeniny *</label><div class="two-fields"><div><label class="sub-label" for="person-birth-day">Deň</label><select id="person-birth-day" required></select></div><div><label class="sub-label" for="person-birth-month">Mesiac</label><select id="person-birth-month" required></select></div></div></div>
       <div class="input-group"><label for="person-name-day-override">Meniny – ručná oprava (nepovinné)</label><input id="person-name-day-override" placeholder="DD.MM. (napr. 25.11.)" pattern="[0-9]{1,2}\.[0-9]{1,2}\.?" inputmode="numeric"><small id="person-name-day-status" class="helper-note">Meniny sa automaticky určia pri uložení osoby. Ak ich kalendár nepozná, môžeš zadať dátum ručne.</small></div>
@@ -90,5 +102,5 @@
 </section>
 </main>
 <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><a href="index.html">Verejný kalendár ↗</a></div></footer>
-<script src="config.js"></script><script src="admin.js?v=10" type="module"></script>
+<script src="config.js"></script><script src="admin.js?v=11" type="module"></script>
 </body></html>

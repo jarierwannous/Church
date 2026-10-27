@@ -1,5 +1,5 @@
-import {nextYearICS} from './ics.js?v=10';
-import {showConfigProblem,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=10';
+import {nextYearICS} from './ics.js?v=11';
+import {showConfigProblem,fetchEvents,fetchBesiedka,combineWithSundays,parseDate,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast,sortEvents} from './shared.js?v=11';
 const $=sel=>document.querySelector(sel);
 const state={raw:[],besiedka:[],events:[],year:new Date().getFullYear(),month:new Date().getMonth(),filter:'all',query:'',selectedDay:null};
 const monthFormat=new Intl.DateTimeFormat('sk-SK',{month:'long',year:'numeric'});
@@ -12,7 +12,8 @@ function prepareEvents(){
   const upcoming=combineWithSundays(state.raw,state.besiedka,localDate(addDays(now,-7)),localDate(addDays(now,85)));
   state.events=combineWithSundays(upcoming,state.besiedka,localDate(addDays(monthBegin,-14)),localDate(addDays(new Date(state.year,state.month+1,0),14)));
 }
-function matches(e){const q=state.query.toLocaleLowerCase('sk-SK');return (state.filter==='all'||e.event_type===state.filter)&&(!q||[niceTitle(e),e.title,e.description,e.responsible_person,e.sermon_author,e.sermon_title,e.sermon_description,e.moderator_name,e.besiedka_leader,e.worship_leader,e.is_cancelled?'zrušená':'',e.besiedka_cancelled?'besiedka zrušená':''].filter(Boolean).some(x=>String(x).toLocaleLowerCase('sk-SK').includes(q)));}
+function matches(e){const q=state.query.toLocaleLowerCase('sk-SK');return (state.filter==='all'||e.event_type===state.filter)&&(!q||[niceTitle(e),categoryTag(e),e.title,e.description,e.responsible_person,e.sermon_author,e.sermon_title,e.sermon_description,e.moderator_name,e.besiedka_leader,e.worship_leader,e.is_cancelled?'zrušená':'',e.besiedka_cancelled?'besiedka zrušená':''].filter(Boolean).some(x=>String(x).toLocaleLowerCase('sk-SK').includes(q)));}
+function categoryTag(e){return e.event_category==='Skupinka'&&e.event_group?`Skupinka · ${e.event_group}`:(e.event_category||'Iná akcia');}
 function eventDateTime(e){return `${e.event_date}T${timeText(e.start_time)||'00:00'}`;}
 function readableDate(e){return `${formatDate(e.event_date)} · ${timeText(e.start_time)}${e.end_time?` – ${timeText(e.end_time)}`:''}`;}
 function renderHero(){
@@ -40,7 +41,7 @@ function renderCalendar(){
   for(let n=0;n<cells;n++){
     const date=new Date(state.year,state.month,1-offset+n),dateIso=localDate(date),inside=date.getMonth()===state.month;
     const items=relevant.filter(e=>e.event_date===dateIso);if(inside)count+=items.length;
-    html+=`<button type="button" class="calendar-day${inside?'':' outside'}${dateIso===todayIso?' today':''}${date.getDay()===0?' sunday':''}${dateIso===state.selectedDay?' selected':''}" data-date="${dateIso}" aria-label="${escapeHTML(formatDate(dateIso))}, ${items.length} udalostí"><span class="day-number">${date.getDate()}</span><span class="calendar-events">${items.slice(0,3).map(e=>`<span class="calendar-event ${e.event_type}${e.is_cancelled?' cancelled':''}" title="${escapeHTML(niceTitle(e))}">${escapeHTML(timeText(e.start_time))} ${escapeHTML(niceTitle(e))}</span>${e.event_type==='service'&&e.besiedka_cancelled&&!e.is_cancelled?'<span class="calendar-besiedka-alert">Besiedka zrušená</span>':''}`).join('')}${items.length>3?`<span class="more-events">+${items.length-3} ďalšie</span>`:''}</span></button>`;
+    html+=`<button type="button" class="calendar-day${inside?'':' outside'}${dateIso===todayIso?' today':''}${date.getDay()===0?' sunday':''}${dateIso===state.selectedDay?' selected':''}" data-date="${dateIso}" aria-label="${escapeHTML(formatDate(dateIso))}, ${items.length} udalostí"><span class="day-number">${date.getDate()}</span><span class="calendar-events">${items.slice(0,3).map(e=>`<span class="calendar-event ${e.event_type}${e.is_cancelled?' cancelled':''}" title="${escapeHTML(niceTitle(e))}">${escapeHTML(timeText(e.start_time))} ${escapeHTML(e.event_type==='service'?niceTitle(e):categoryTag(e)+' · '+niceTitle(e))}</span>${e.event_type==='service'&&e.besiedka_cancelled&&!e.is_cancelled?'<span class="calendar-besiedka-alert">Besiedka zrušená</span>':''}`).join('')}${items.length>3?`<span class="more-events">+${items.length-3} ďalšie</span>`:''}</span></button>`;
   }
   $('#calendar-grid').innerHTML=html;$('#month-count').textContent=`${count} ${count===1?'udalosť':count>=2&&count<=4?'udalosti':'udalostí'} v mesiaci`;
 }
@@ -53,7 +54,7 @@ function renderUpcoming(){
     const date=parseDate(e.event_date),month=new Intl.DateTimeFormat('sk-SK',{month:'short'}).format(date);
     const title=e.event_type==='service'?(e.is_cancelled?'Bohoslužba zrušená':(e.sermon_title||'Nedeľná bohoslužba')):e.title;
     const meta=e.event_type==='service'?(e.is_cancelled?'Bohoslužba sa nekoná':(e.sermon_author||'Program sa pripravuje')+(e.besiedka_cancelled?' · Besiedka zrušená':'')):e.responsible_person;
-    return `<button type="button" class="upcoming-item" data-id="${escapeHTML(e.id)}"><span class="date-tile ${e.event_type}${e.is_cancelled?' cancelled':''}"><span class="date-day">${date.getDate()}</span><span class="date-month">${escapeHTML(month)}</span></span><span><span class="item-tag ${e.event_type}">${e.event_type==='service'?'BOHOSLUŽBA':'AKCIA'}</span><span class="upcoming-title">${escapeHTML(title)}</span><span class="upcoming-meta">${escapeHTML(timeText(e.start_time))} · ${escapeHTML(meta)}</span></span></button>`;
+    return `<button type="button" class="upcoming-item" data-id="${escapeHTML(e.id)}"><span class="date-tile ${e.event_type}${e.is_cancelled?' cancelled':''}"><span class="date-day">${date.getDate()}</span><span class="date-month">${escapeHTML(month)}</span></span><span><span class="item-tag ${e.event_type}">${escapeHTML(e.event_type==='service'?'BOHOSLUŽBA':categoryTag(e).toLocaleUpperCase('sk'))}</span><span class="upcoming-title">${escapeHTML(title)}</span><span class="upcoming-meta">${escapeHTML(timeText(e.start_time))} · ${escapeHTML(meta)}</span></span></button>`;
   }).join('');
 }
 function render(){prepareEvents();renderHero();renderCalendar();renderUpcoming();}
@@ -64,7 +65,7 @@ function serviceModal(e){
 }
 function generalModal(e){return `<section class="modal-section"><h3>O podujatí</h3><div class="modal-copy">${escapeHTML(e.description)}</div></section><section class="modal-section"><h3>Organizácia</h3>${role('Zodpovedná osoba',e.responsible_person)}</section>`;}
 let previousFocus=null;
-function openModal(id){const e=state.events.find(x=>String(x.id)===String(id));if(!e)return;previousFocus=document.activeElement;$('#modal-inner').innerHTML=`<span class="modal-tag ${e.event_type}">${e.event_type==='service'?'NEDEĽNÁ BOHOSLUŽBA':'ZBOROVÁ AKCIA'}</span><h2 id="modal-title">${escapeHTML(niceTitle(e))}</h2><div class="modal-date">${escapeHTML(readableDate(e))}</div>${e.event_type==='service'?serviceModal(e):generalModal(e)}`;$('#event-modal').hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
+function openModal(id){const e=state.events.find(x=>String(x.id)===String(id));if(!e)return;previousFocus=document.activeElement;$('#modal-inner').innerHTML=`<span class="modal-tag ${e.event_type}">${escapeHTML(e.event_type==='service'?'NEDEĽNÁ BOHOSLUŽBA':categoryTag(e).toLocaleUpperCase('sk'))}</span><h2 id="modal-title">${escapeHTML(niceTitle(e))}</h2><div class="modal-date">${escapeHTML(readableDate(e))}</div>${e.event_type==='service'?serviceModal(e):generalModal(e)}`;$('#event-modal').hidden=false;document.body.style.overflow='hidden';$('#modal-close').focus();}
 function closeModal(){$('#event-modal').hidden=true;document.body.style.overflow='';previousFocus?.focus();}
 $('#prev-month').addEventListener('click',()=>{const d=new Date(state.year,state.month-1,1);state.year=d.getFullYear();state.month=d.getMonth();state.selectedDay=null;render();});
 $('#next-month').addEventListener('click',()=>{const d=new Date(state.year,state.month+1,1);state.year=d.getFullYear();state.month=d.getMonth();state.selectedDay=null;render();});
