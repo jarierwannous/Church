@@ -221,3 +221,14 @@
 .simple-admin .group-add-toggle{margin:9px 0 0;padding:5px 0;font-size:13px}
 .kind-card-icon.youth{background:#e8f2fc;color:#326b98}.kind-card-icon.group{background:#f1eafa;color:#725794}
 @media(max-width:540px){.simple-admin .inline-kind-form{flex-direction:column;align-items:stretch}.simple-admin .inline-kind-form button{width:100%}}
+
+/* V11 – obnovený odkaz na Správu udalostí vo verejnej navigácii */
+@media (max-width:1020px) and (min-width:651px) {
+  .compact-public .site-header .topbar { flex-wrap:wrap; padding-top:12px; padding-bottom:12px; gap:9px; }
+  .compact-public .site-header .topnav { margin-left:auto; gap:16px; }
+}
+@media (max-width:650px) {
+  .compact-public .site-header .topnav a[href="#najblizsie"] {display:none;}
+  .compact-public .site-header .topnav {gap:7px; flex-wrap:nowrap;}
+  .compact-public .site-header .nav-admin {flex:0 0 auto;}
+}
