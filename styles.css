@@ -232,3 +232,31 @@
   .compact-public .site-header .topnav {gap:7px; flex-wrap:nowrap;}
   .compact-public .site-header .nav-admin {flex:0 0 auto;}
 }
+
+/* V12 — na mobile najprv najblizsie udalosti, az potom mesacny kalendar.
+   Poradie prvkov v HTML zodpoveda mobilnemu poradiu aj pre klavesnicu. */
+.compact-public .main-section{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  column-gap:22px;
+  align-items:start;
+}
+.compact-public .main-section > .section-intro{grid-column:1/-1;grid-row:1;}
+.compact-public .main-section > .calendar-toolbar{grid-column:1/-1;grid-row:2;}
+.compact-public .main-section > .calendar-card{grid-column:1;grid-row:3;min-width:0;}
+.compact-public .main-section > .upcoming-panel{grid-column:2;grid-row:3;min-width:0;}
+@media (min-width:851px) and (max-width:1100px){
+  .compact-public .main-section{grid-template-columns:minmax(0,1fr) 310px;}
+}
+@media (max-width:850px){
+  .compact-public .main-section{display:flex;flex-direction:column;}
+  .compact-public .main-section > .upcoming-panel{width:100%;margin-bottom:29px;}
+  .compact-public .main-section > .section-intro,
+  .compact-public .main-section > .calendar-toolbar,
+  .compact-public .main-section > .calendar-card{width:100%;}
+}
+/* Užšie telefóny: nech tlačidlo administrácie nezväčšuje šírku stránky. */
+@media (max-width:375px){
+  .compact-public .site-header .topnav .nav-admin{font-size:0;gap:0;padding:10px 12px;}
+  .compact-public .site-header .topnav .nav-admin svg{width:18px;height:18px;}
+}
