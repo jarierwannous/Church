@@ -93,15 +93,19 @@ function demoGet() {
   try { const stored = JSON.parse(localStorage.getItem(demoKey)); if (Array.isArray(stored)) return stored; } catch {}
   const seeds = demoSeeds(); localStorage.setItem(demoKey,JSON.stringify(seeds)); return seeds;
 }
-export async function fetchEvents(all=false) {
-  if (!configured) return sortEvents(demoGet().filter(e=>all || e.is_published));
+export async function fetchEvents(all=false,includePrivate=false) {
+  if (!configured) return sortEvents(demoGet().filter(e=>(all || e.is_published) && (all || includePrivate || e.visibility!=='members')));
   const client = await getClient();
   const result=[],pageSize=500;
   for(let page=0;page<40;page++){
     let request=client.from('events').select('*')
       .order('event_date',{ascending:true}).order('start_time',{ascending:true})
       .order('id',{ascending:true}).range(page*pageSize,(page+1)*pageSize-1);
-    if(!all)request=request.eq('is_published',true);
+    if(!all){
+      request=request.eq('is_published',true);
+      // Verejná stránka musí zostať verejná aj v prehliadači prihláseného správcu.
+      if(!includePrivate)request=request.eq('visibility','public');
+    }
     const {data,error}=await request;
     if(error)throw error;
     result.push(...(data||[]));
@@ -131,11 +135,12 @@ export async function shiftFollowingEvents(selectedId,entry){
     localStorage.setItem(demoKey,JSON.stringify(shiftSeriesLocally(demoGet(),selectedId,entry)));return;
   }
   const client=await getClient();
-  const {data,error}=await client.rpc('shift_following_events_v11',{
+  const {data,error}=await client.rpc('shift_following_events_v13',{
     p_event_id:selectedId,p_date:entry.event_date,p_time:entry.start_time,p_end_time:entry.end_time,
     p_title:entry.title,p_description:entry.description,
     p_responsible_person:entry.responsible_person,p_is_published:entry.is_published,
-    p_event_category:entry.event_category,p_event_group:entry.event_group
+    p_event_category:entry.event_category,p_event_group:entry.event_group,
+    p_visibility:entry.visibility||'public' 
   });
   if(error)throw error;if(!data)throw new Error('Žiadne termíny neboli posunuté.');return data;
 }

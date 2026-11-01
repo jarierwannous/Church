@@ -5,7 +5,7 @@
 <meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#173d37" name="theme-color"/>
 <title>Správa udalostí | Kresťanský zbor Trenčín</title>
 <meta name="robots" content="noindex,nofollow"/>
-<link href="styles.css?v=11" rel="stylesheet"/>
+<link href="styles.css?v=13" rel="stylesheet"/>
 </head>
 <body class="admin-body simple-admin branded-admin">
 <header class="site-header admin-header"><div class="shell topbar"><a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – verejný kalendár"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a><nav class="topnav"><a href="index.html"><span class="nav-back-long">← Verejný kalendár</span><span class="nav-back-short">← Kalendár</span></a><span class="admin-pill">Administrácia</span></nav></div></header>
@@ -66,7 +66,12 @@
   <label class="repeat-shift-option"><input type="checkbox" id="shift-following"><span><strong>Posunúť tento a všetky nasledujúce termíny</strong><small>Zadaný rozdiel medzi pôvodným a novým dátumom/časom sa použije na všetky ďalšie stretnutia v sérii. Názov, opis a zodpovedná osoba sa zmenia iba pri tomto termíne.</small></span></label>
 </div></div>
 <div class="cancel-zone" id="service-cancel-zone"><div><strong>Výnimka v nedeľnom programe</strong><span>Ak je namiesto bohoslužby iná zborová akcia, označte nedeľu ako zrušenú. Ostatné akcie môžete pridať samostatne.</span></div><button class="cancel-button" id="toggle-cancel-service" type="button">Zrušiť bohoslužbu</button></div>
-<div class="visibility-toggle"><div><strong>Zverejniť udalosť</strong><span>Uvidia ju všetci návštevníci kalendára.</span></div><label aria-label="Zverejniť udalosť" class="switch"><input checked="" id="event-published" type="checkbox"/><span class="switch-slider"></span></label></div>
+<div class="input-group" id="event-visibility-zone" hidden>
+  <label for="event-visibility">Kto uvidí udalosť?</label>
+  <select id="event-visibility" class="kind-select"><option value="public">Verejný kalendár – všetci návštevníci</option><option value="members">Členský kalendár – iba schválené účty</option></select>
+  <small class="helper-note">Toto nastavenie platí aj pre opakované termíny vytvorené naraz. Súkromné akcie sa nezobrazujú vo verejnom ICS odbere.</small>
+</div>
+<div class="visibility-toggle"><div><strong>Uložiť ako zverejnenú udalosť</strong><span>Ak prepínač vypnete, bude to koncept viditeľný iba správcom.</span></div><label aria-label="Zverejniť udalosť" class="switch"><input checked="" id="event-published" type="checkbox"/><span class="switch-slider"></span></label></div>
 <p class="form-error" id="form-error" role="alert"></p><div class="form-actions"><button class="text-button danger" hidden="" id="delete-event" type="button">Odstrániť</button><button class="text-button danger" hidden id="delete-series" type="button">Odstrániť celú sériu</button><span class="flex-fill"></span><button class="ghost-button" id="cancel-edit" type="button">Zrušiť</button><button class="primary-button" id="save-event" type="submit">Uložiť udalosť <span>→</span></button></div>
 </form>
 </section>
@@ -102,5 +107,5 @@
 </section>
 </main>
 <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><a href="index.html">Verejný kalendár ↗</a></div></footer>
-<script src="config.js"></script><script src="admin.js?v=11" type="module"></script>
+<script src="config.js"></script><script src="admin.js?v=13" type="module"></script>
 </body></html>
