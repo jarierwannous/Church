@@ -2,7 +2,7 @@ import {generateDates} from './recurrence.js?v=11';
 import {lookupNameDay,validMonthDay,displayMonthDay} from './meniny.js?v=11';
 import {configured,showConfigProblem,getClient,fetchPeople,savePerson,deletePerson,fetchEventKinds,addEventKind,fetchEvents,putEvent,removeEvent,putRecurringEvents,removeSeries,shiftFollowingEvents,fetchBesiedka,putBesiedka,localDate,addDays,formatDate,timeText,niceTitle,escapeHTML,showToast} from './shared.js?v=13';
 const $=sel=>document.querySelector(sel),form=$('#event-form');
-let events=[],besiedka=[],kinds=[],editingId=null,type='service',busy=false,signedInUser=null,permissions={can_manage_events:true,can_manage_besiedka:true};
+let events=[],besiedka=[],kinds=[],editingId=null,type='service',busy=false,signedInUser=null,permissions={can_manage_events:true,can_manage_besiedka:true,can_manage_members:false};
 $('#year').textContent=new Date().getFullYear();showConfigProblem('admin-demo-banner');
 function nextSunday(week=0){const today=new Date();return localDate(addDays(today,(7-today.getDay())%7+7*week));}
 function sundayDate(iso){return Boolean(iso)&&new Date(`${iso}T12:00:00`).getDay()===0;}
@@ -166,7 +166,7 @@ $('#repeat-frequency').addEventListener('change',updateRepeatUI);
 $('#repeat-until').addEventListener('change',updateRepeatUI);
 $('#event-date').addEventListener('change',updateRepeatUI);
 // Trojkroková administrácia: úvod → typ udalosti → iba príslušný formulár.
-const stages={home:'#admin-home',picker:'#admin-type-picker',editor:'#admin-editor-stage',besiedka:'#admin-besiedka-stage',list:'#admin-list-stage',people:'#admin-people-stage'};
+const stages={home:'#admin-home',picker:'#admin-type-picker',editor:'#admin-editor-stage',besiedka:'#admin-besiedka-stage',list:'#admin-list-stage',people:'#admin-people-stage',applications:'#admin-applications-stage'};
 function showStage(stage){
   for(const [name,selector] of Object.entries(stages))$(selector).hidden=name!==stage;
   window.scrollTo({top:0,behavior:'instant'});
@@ -180,9 +180,10 @@ function openNew(next,category='Iná akcia'){
   clearForm();setType(next);if(next==='general'){$('#general-category').value=category;updateGroupChoices();}$('#editor-title').textContent=next==='service'?'Nová bohoslužba':`Nová akcia · ${category}`;
   showStage('editor');$('#event-date').focus();
 }
-$('#add-action').addEventListener('click',()=>showStage('picker'));
+$('#add-action').addEventListener('click',()=>{if(permissions.can_manage_events||permissions.can_manage_besiedka)showStage('picker');});
 $('#manage-events-btn').addEventListener('click',()=>{if(permissions.can_manage_events)showStage('list');});
 $('#manage-people-btn').addEventListener('click',async()=>{if(!permissions.can_manage_events)return;showStage('people');await reloadPeople();});
+$('#manage-applications-btn').addEventListener('click',async()=>{if(!permissions.can_manage_members)return;showStage('applications');await reloadApplications();});
 $('#pick-service').addEventListener('click',()=>openNew('service'));
 $('#pick-besiedka').addEventListener('click',()=>openNew('besiedka'));
 $('#pick-general').addEventListener('click',()=>openNew('general'));
@@ -194,7 +195,7 @@ $('#new-root-kind-toggle').addEventListener('click',()=>{$('#new-root-kind-form'
 $('#new-group-kind-toggle').addEventListener('click',()=>{$('#new-group-kind-form').hidden=!$('#new-group-kind-form').hidden;});
 $('#save-root-kind').addEventListener('click',()=>addKindFromForm('#new-root-kind-name','#kind-error',null));
 $('#save-group-kind').addEventListener('click',()=>{const root=groupRoot();if(root)addKindFromForm('#new-group-kind-name','#group-kind-error',root.id);else $('#group-kind-error').textContent='Chýba predvolený druh Skupinka. Skontrolujte SQL migráciu.';});
-['#back-home-from-picker','#back-home-from-editor','#back-home-from-besiedka','#back-home-from-list','#back-home-from-people'].forEach(id=>$(id).addEventListener('click',()=>{clearForm();showStage('home');}));
+['#back-home-from-picker','#back-home-from-editor','#back-home-from-besiedka','#back-home-from-list','#back-home-from-people','#back-home-from-applications'].forEach(id=>$(id).addEventListener('click',()=>{clearForm();showStage('home');}));
 $('#event-published').addEventListener('change',updateRequirements);
 $('#event-date').addEventListener('change',refreshCancellationButton);
 $('#cancel-edit').addEventListener('click',()=>{clearForm();showStage('home');});
@@ -222,16 +223,17 @@ $('#besiedka-delete').addEventListener('click',async()=>{const date=value('#besi
 function showLogin(message=''){$('#login-view').hidden=false;$('#admin-view').hidden=true;$('#login-error').textContent=message;}
 async function showAdmin(account){
   $('#login-view').hidden=true;$('#admin-view').hidden=false;$('#signed-user').textContent=account?.email||'Ukážkový režim';$('#logout-btn').hidden=!configured;
-  $('#pick-besiedka').hidden=!permissions.can_manage_besiedka;$('#pick-service').hidden=!permissions.can_manage_events;$('#pick-general').hidden=!permissions.can_manage_events;$('#pick-youth').hidden=!permissions.can_manage_events;$('#pick-group').hidden=!permissions.can_manage_events;$('#kind-create-area').hidden=!permissions.can_manage_events;$('#manage-events-btn').hidden=!permissions.can_manage_events;$('#manage-people-btn').hidden=!permissions.can_manage_events;
+  $('#pick-besiedka').hidden=!permissions.can_manage_besiedka;$('#pick-service').hidden=!permissions.can_manage_events;$('#pick-general').hidden=!permissions.can_manage_events;$('#pick-youth').hidden=!permissions.can_manage_events;$('#pick-group').hidden=!permissions.can_manage_events;$('#kind-create-area').hidden=!permissions.can_manage_events;$('#manage-events-btn').hidden=!permissions.can_manage_events;$('#manage-people-btn').hidden=!permissions.can_manage_events;$('#manage-applications-btn').hidden=!permissions.can_manage_members;$('#add-action').hidden=!(permissions.can_manage_events||permissions.can_manage_besiedka);
+  if(!permissions.can_manage_events&&!permissions.can_manage_besiedka&&permissions.can_manage_members){$('#home-title').textContent='Schvaľovanie interných účtov';$('#admin-home > p').textContent='Spravujte žiadosti o prístup do interného kalendára.';}
   clearForm();showStage('home');$('#besiedka-date').value=nextSunday();fillBesiedkaDate();
   if(permissions.can_manage_events){await reloadKinds();await reloadEvents();}
   if(permissions.can_manage_besiedka)await reloadBesiedka();
 }
 async function authorizedUser(){
   const client=await getClient();const {data:{user},error}=await client.auth.getUser();if(error||!user)return null;
-  const {data,error:accessError}=await client.from('editors').select('user_id,display_name,can_manage_events,can_manage_besiedka').eq('user_id',user.id).eq('is_active',true).maybeSingle();
-  if(accessError)throw accessError;if(!data||(!data.can_manage_events&&!data.can_manage_besiedka))return null;
-  return {user,permissions:{can_manage_events:data.can_manage_events,can_manage_besiedka:data.can_manage_besiedka}};
+  const {data,error:accessError}=await client.from('editors').select('user_id,display_name,can_manage_events,can_manage_besiedka,can_manage_members').eq('user_id',user.id).eq('is_active',true).maybeSingle();
+  if(accessError)throw accessError;if(!data||(!data.can_manage_events&&!data.can_manage_besiedka&&!data.can_manage_members))return null;
+  return {user,permissions:{can_manage_events:data.can_manage_events,can_manage_besiedka:data.can_manage_besiedka,can_manage_members:data.can_manage_members}};
 }
 $('#login-form').addEventListener('submit',async ev=>{ev.preventDefault();const button=$('#login-button');button.disabled=true;$('#login-error').textContent='';try{
   const client=await getClient();const {error}=await client.auth.signInWithPassword({email:value('#login-email'),password:$('#login-password').value});if(error)throw error;
@@ -310,6 +312,52 @@ $('#person-delete').addEventListener('click',async()=>{
   try{await deletePerson(personEditing);await reloadPeople();resetPersonForm();showToast('Osoba bola odstránená.');}
   catch(err){$('#people-error').textContent=friendlyError(err);}
   finally{personBusy=false;}
+});
+
+// V14 – schvaľovanie interných čitateľských účtov. Oprávnenie kontroluje RPC v databáze.
+let applications=[],applicationFilter='pending',reviewBusy=false;
+function applicationStatusLabel(s){return ({pending:'Čaká na schválenie',approved:'Schválený',rejected:'Zamietnutý',revoked:'Odobratý prístup'})[s]||s;}
+function drawApplications(){
+  const list=$('#applications-list');
+  const filtered=applications.filter(a=>applicationFilter==='rejected'?['rejected','revoked'].includes(a.status):a.status===applicationFilter);
+  list.innerHTML=filtered.length?filtered.map(a=>`<article class="application-row">
+    <div class="application-person"><strong>${escapeHTML(a.display_name)}</strong><span>${escapeHTML(a.email)}</span><small>${escapeHTML(applicationStatusLabel(a.status))} · ${escapeHTML(new Date(a.requested_at).toLocaleDateString('sk-SK'))}</small></div>
+    <div class="application-actions">${a.status==='pending'?`<button type="button" data-review="approve" data-user="${escapeHTML(a.user_id)}" class="primary-button">Schváliť</button><button type="button" data-review="reject" data-user="${escapeHTML(a.user_id)}" class="ghost-button">Zamietnuť</button>`:a.status==='approved'?`<button type="button" data-review="revoke" data-user="${escapeHTML(a.user_id)}" class="ghost-button">Odobrať prístup</button>`:`<button type="button" data-review="approve" data-user="${escapeHTML(a.user_id)}" class="ghost-button">Schváliť</button>`}</div>
+  </article>`).join(''):'<p class="muted">V tejto skupine nie sú žiadne žiadosti.</p>';
+}
+async function reloadApplications(){
+  if(!permissions.can_manage_members)return;
+  $('#applications-error').textContent='';
+  try{
+    const client=await getClient();
+    const {data,error}=await client.from('member_applications').select('user_id,email,display_name,status,requested_at,reviewed_at').order('requested_at',{ascending:false});
+    if(error)throw error;
+    applications=data||[];drawApplications();
+  }catch(error){console.error(error);$('#applications-error').textContent=error?.message||'Nedá sa načítať zoznam žiadostí.';}
+}
+document.querySelectorAll('[data-app-filter]').forEach(button=>button.addEventListener('click',()=>{
+  applicationFilter=button.dataset.appFilter;
+  document.querySelectorAll('[data-app-filter]').forEach(b=>b.classList.toggle('active',b===button));
+  drawApplications();
+}));
+$('#applications-refresh').addEventListener('click',reloadApplications);
+$('#applications-list').addEventListener('click',async event=>{
+  const button=event.target.closest('[data-review]');
+  if(!button||reviewBusy||!permissions.can_manage_members)return;
+  const user=applications.find(a=>a.user_id===button.dataset.user);
+  if(!user)return;
+  const action=button.dataset.review;
+  const verb=action==='approve'?'schváliť':action==='reject'?'zamietnuť':'odobrať prístup pre';
+  if(!window.confirm(`Naozaj chcete ${verb} účet ${user.display_name} (${user.email})?`))return;
+  reviewBusy=true;button.disabled=true;$('#applications-error').textContent='';
+  try{
+    const client=await getClient();
+    const {error}=await client.rpc('review_calendar_application',{p_user_id:user.user_id,p_action:action});
+    if(error)throw error;
+    showToast(action==='approve'?'Účet bol schválený.':action==='reject'?'Žiadosť bola zamietnutá.':'Prístup bol odobratý.');
+    await reloadApplications();
+  }catch(error){console.error(error);$('#applications-error').textContent=error?.message||'Zmena oprávnení zlyhala.';}
+  finally{reviewBusy=false;button.disabled=false;}
 });
 
 async function init(){

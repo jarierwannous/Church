@@ -167,8 +167,8 @@ $('#download-ics').addEventListener('click',()=>{
 
 
 
-// Interný kalendár: schválený člen má len právo čítať publikované interné záznamy.
-// Skutočnú ochranu zaručuje RLS. Tento formulár nie je náhradou databázových pravidiel.
+// Interný kalendár: registrácia -> overenie e-mailu -> žiadosť -> schválenie.
+// Prihlásenie samo osebe NEDÁVA oprávnenie na interné udalosti. O tom rozhoduje RLS.
 async function memberPermission(client,user){
   if(!user)return false;
   const [{data:member,error:memberErr},{data:editor,error:editorErr}]=await Promise.all([
@@ -178,17 +178,61 @@ async function memberPermission(client,user){
   if(memberErr||editorErr)throw memberErr||editorErr;
   return Boolean(member?.is_active || (editor?.is_active&&(editor.can_manage_events||editor.can_manage_besiedka)));
 }
+function chooseAuthTab(tab){
+  const register=tab==='register';
+  $('#member-login-form').hidden=register;
+  $('#member-register-form').hidden=!register;
+  $('#member-approval-state').hidden=true;
+  $('#member-auth-help').hidden=false;
+  for(const [name,id] of [['login','#member-tab-login'],['register','#member-tab-register']]){
+    const active=name===tab;
+    $(id).classList.toggle('active',active);
+    $(id).setAttribute('aria-pressed',String(active));
+  }
+  $('#member-login-error').textContent='';
+  $('#member-register-error').textContent='';
+}
 function memberGate(message=''){
   $('#member-gate').hidden=false;
   $('#member-content').hidden=true;
+  $('.member-auth-tabs').hidden=false;
+  chooseAuthTab('login');
   $('#member-login-error').textContent=message;
+}
+async function presentApplicationStatus(client,user){
+  const {data,error}=await client.from('member_applications')
+    .select('status,display_name,requested_at,reviewed_at')
+    .eq('user_id',user.id).maybeSingle();
+  if(error)throw error;
+  $('#member-gate').hidden=false;
+  $('#member-content').hidden=true;
+  $('.member-auth-tabs').hidden=true;
+  $('#member-login-form').hidden=true;
+  $('#member-register-form').hidden=true;
+  $('#member-auth-help').hidden=true;
+  $('#member-approval-state').hidden=false;
+  $('#member-request-error').textContent='';
+  const pending=data?.status==='pending', rejected=data?.status==='rejected', revoked=data?.status==='revoked';
+  const suspended=data?.status==='approved';
+  const title=pending?'Žiadosť čaká na schválenie':rejected?'Žiadosť bola zamietnutá':revoked?'Prístup bol odobratý':suspended?'Prístup je pozastavený':'Požiadať o prístup';
+  $('#member-approval-title').textContent=title;
+  $('#member-approval-description').textContent=pending
+    ?'E-mail je overený a žiadosť bola prijatá. Keď správca schváli prístup, po opätovnom otvorení stránky uvidíte interné udalosti.'
+    :rejected?'Vašu žiadosť správca zamietol. Obráťte sa na vedenie zboru.'
+    :revoked?'Prístup do interného kalendára vám bol odobratý. Obráťte sa na správcu.'
+    :suspended?'Váš prístup je momentálne neaktívny. Obráťte sa na správcu.'
+    :'Váš účet je prihlásený, ale zatiaľ nemá prístup. Pošlite žiadosť správcovi zborového kalendára.';
+  const showRequest=!data;
+  $('#member-request-name-wrap').hidden=!showRequest;
+  $('#member-request-button').hidden=!showRequest;
+  if(showRequest){$('#member-request-name').value=user.user_metadata?.full_name||'';}
 }
 async function memberSignedIn(client){
   const {data:{user},error}=await client.auth.getUser();
   if(error||!user){memberGate();return;}
   if(!await memberPermission(client,user)){
-    await client.auth.signOut();
-    memberGate('Tento účet zatiaľ nemá povolený prístup k internému kalendáru. Obráťte sa na správcu.');return;
+    await presentApplicationStatus(client,user);
+    return;
   }
   $('#member-gate').hidden=true;
   $('#member-content').hidden=false;
@@ -197,9 +241,11 @@ async function memberSignedIn(client){
 async function initializeMemberPage(){
   if(!configured){memberGate('Pre interný kalendár je potrebné pripojenie k Supabase.');return;}
   try{await memberSignedIn(await getClient());}
-  catch(error){console.error('Interný kalendár:',error);memberGate('Nepodarilo sa overiť prístup. Skontrolujte SQL migráciu v7.');}
+  catch(error){console.error('Interný kalendár:',error);memberGate('Nepodarilo sa overiť prístup. Skontrolujte SQL migráciu v8.');}
 }
 if(memberMode){
+  $('#member-tab-login').addEventListener('click',()=>chooseAuthTab('login'));
+  $('#member-tab-register').addEventListener('click',()=>chooseAuthTab('register'));
   $('#member-login-form').addEventListener('submit',async event=>{
     event.preventDefault();const button=$('#member-login-button');button.disabled=true;
     $('#member-login-error').textContent='';
@@ -207,12 +253,48 @@ if(memberMode){
       const client=await getClient();
       const {error}=await client.auth.signInWithPassword({email:$('#member-email').value.trim(),password:$('#member-password').value});
       if(error)throw error;
-      await memberSignedIn(client);
-      $('#member-password').value='';
-    }catch(error){console.error('Prihlásenie člena:',error);memberGate('Prihlásenie sa nepodarilo. Skontrolujte heslo alebo oprávnenie účtu.');}
+      await memberSignedIn(client);$('#member-password').value='';
+    }catch(error){console.error('Prihlásenie člena:',error);$('#member-login-error').textContent='Prihlásenie sa nepodarilo. Skontrolujte e-mail, heslo a overenie e-mailovej adresy.';}
     finally{button.disabled=false;}
   });
-  $('#member-logout').addEventListener('click',async()=>{
-    const client=await getClient();await client.auth.signOut();state.raw=[];state.besiedka=[];state.events=[];memberGate();
+  $('#member-register-form').addEventListener('submit',async event=>{
+    event.preventDefault();const button=$('#member-register-button');button.disabled=true;
+    $('#member-register-error').textContent='';
+    try{
+      if(!configured)throw Error('Supabase nie je nastavený.');
+      const client=await getClient();
+      const email=$('#member-register-email').value.trim();
+      const full_name=$('#member-register-name').value.trim();
+      if(full_name.length<2||full_name.length>100)throw Error('Zadajte celé meno.');
+      const redirect=new URL('clensky.html',window.location.href).href;
+      const {data,error}=await client.auth.signUp({email,password:$('#member-register-password').value,options:{
+        emailRedirectTo:redirect,data:{full_name,calendar_registration:true}
+      }});
+      if(error)throw error;
+      $('#member-register-password').value='';
+      if(data.session){await memberSignedIn(client);}
+      else {
+        chooseAuthTab('login');
+        $('#member-login-error').textContent='Ak je registrácia prijatá, na e-mail príde potvrdzovací odkaz. Po potvrdení sa prihláste a odošlite žiadosť o prístup.';
+      }
+    }catch(error){console.error('Registrácia:',error);$('#member-register-error').textContent=error?.message||'Registrácia sa nepodarila.';}
+    finally{button.disabled=false;}
   });
+  $('#member-request-button').addEventListener('click',async()=>{
+    const button=$('#member-request-button');button.disabled=true;
+    $('#member-request-error').textContent='';
+    try{
+      const client=await getClient();
+      const {error}=await client.rpc('request_calendar_membership',{p_display_name:$('#member-request-name').value.trim()});
+      if(error)throw error;
+      await memberSignedIn(client);
+    }catch(error){console.error('Žiadosť:',error);$('#member-request-error').textContent=error?.message||'Odoslanie žiadosti zlyhalo.';}
+    finally{button.disabled=false;}
+  });
+  async function memberLogout(){
+    const client=await getClient();await client.auth.signOut();
+    state.raw=[];state.besiedka=[];state.events=[];memberGate();
+  }
+  $('#member-pending-logout').addEventListener('click',memberLogout);
+  $('#member-logout').addEventListener('click',memberLogout);
 }

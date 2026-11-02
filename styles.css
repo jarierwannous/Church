@@ -282,3 +282,21 @@
 }
 
 .legend-dot.member{background:#777f98}
+
+/* Verzia 14: bezpečná registrácia a schvaľovanie členov. */
+.member-auth-tabs {display:flex;gap:8px;margin:18px 0 22px}
+.member-auth-tab {flex:1;padding:12px;border:1px solid #cbd8d3;border-radius:12px;background:#fff;color:#173d37;font:inherit;font-weight:650;cursor:pointer}
+.member-auth-tab.active {background:#173d37;color:#fff}
+.member-approval-state {padding:16px 0;max-width:520px}
+.member-approval-state h2 {font-size:clamp(1.2rem,3vw,1.6rem);margin:0 0 10px}
+.member-approval-state .ghost-button {margin-left:8px}
+.member-approval-state p {line-height:1.6}
+.approval-filter {display:flex;flex-wrap:wrap;gap:8px;margin:22px 0}
+.approval-filter button.active {background:#173d37;color:#fff}
+.applications-list {display:grid;gap:10px;margin:14px 0 20px}
+.application-row {border:1px solid #dbe5e0;border-radius:14px;background:white;padding:18px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.application-person {display:grid;gap:5px;min-width:0;overflow-wrap:anywhere}
+.application-person span,.application-person small {color:#61736d}
+.application-actions {display:flex;gap:8px;flex-wrap:wrap}
+.application-actions button {white-space:nowrap}
+@media(max-width:650px){.application-row{align-items:stretch;flex-direction:column}.application-actions button{flex:1}.member-approval-state .ghost-button{margin-left:0;margin-top:8px}}

@@ -5,7 +5,7 @@
 <meta charset="utf-8"/><meta content="width=device-width, initial-scale=1" name="viewport"/><meta content="#173d37" name="theme-color"/>
 <title>Správa udalostí | Kresťanský zbor Trenčín</title>
 <meta name="robots" content="noindex,nofollow"/>
-<link href="styles.css?v=13" rel="stylesheet"/>
+<link href="styles.css?v=14" rel="stylesheet"/>
 </head>
 <body class="admin-body simple-admin branded-admin">
 <header class="site-header admin-header"><div class="shell topbar"><a class="brand" href="index.html" aria-label="Kresťanský zbor Trenčín – verejný kalendár"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a><nav class="topnav"><a href="index.html"><span class="nav-back-long">← Verejný kalendár</span><span class="nav-back-short">← Kalendár</span></a><span class="admin-pill">Administrácia</span></nav></div></header>
@@ -25,6 +25,7 @@
 <button class="primary-button admin-add-btn" id="add-action" type="button"><span aria-hidden="true">＋</span> Pridať akciu <span aria-hidden="true">→</span></button>
 <button class="admin-link-button" id="manage-events-btn" type="button">Upraviť naplánované udalosti <span aria-hidden="true">→</span></button>
 <button class="admin-link-button" id="manage-people-btn" type="button">Meniny a narodeniny ľudí v zbore <span aria-hidden="true">→</span></button>
+<button class="admin-link-button" id="manage-applications-btn" type="button" hidden>Schvaľovanie členov interného kalendára <span aria-hidden="true">→</span></button>
 </section>
 <section aria-labelledby="pick-title" class="admin-stage" hidden="" id="admin-type-picker">
 <button class="admin-back" id="back-home-from-picker" type="button">← Späť</button>
@@ -87,6 +88,19 @@
 <button class="admin-back" id="back-home-from-list" type="button">← Späť na úvod</button>
 <section class="admin-list-card"><div class="card-title-row"><div><div class="eyebrow">PREHĽAD</div><h2>Naplánované udalosti</h2></div></div><label class="admin-search"><svg fill="none" height="17" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="17"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg><input id="admin-search-input" placeholder="Hľadať podľa názvu alebo osoby…" type="search"/></label><div class="admin-list" id="admin-list"></div></section>
 </section>
+<section aria-labelledby="applications-heading" class="admin-stage" hidden id="admin-applications-stage">
+  <button class="admin-back" id="back-home-from-applications" type="button">← Späť na úvod</button>
+  <div class="admin-stage-heading"><span class="eyebrow">PRÍSTUP DO INTERNÉHO KALENDÁRA</span><h2 id="applications-heading">Žiadosti o členstvo</h2>
+  <p>Schválením povolíte iba čítanie interných udalostí. Práva na úpravu kalendára sa nikdy neprideľujú automaticky.</p></div>
+  <div class="approval-filter" role="group" aria-label="Filtrovanie žiadostí">
+    <button type="button" class="ghost-button active" data-app-filter="pending">Čakajúce</button>
+    <button type="button" class="ghost-button" data-app-filter="approved">Schválené</button>
+    <button type="button" class="ghost-button" data-app-filter="rejected">Zamietnuté / odobraté</button>
+  </div>
+  <p class="form-error" id="applications-error" role="alert"></p>
+  <div id="applications-list" class="applications-list" aria-live="polite"></div>
+  <button type="button" class="ghost-button" id="applications-refresh">Obnoviť zoznam</button>
+</section>
 <section aria-labelledby="people-heading" class="admin-stage" hidden id="admin-people-stage">
   <button class="admin-back" id="back-home-from-people" type="button">← Späť na úvod</button>
   <section class="editor-card">
@@ -107,5 +121,5 @@
 </section>
 </main>
 <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><a href="index.html">Verejný kalendár ↗</a></div></footer>
-<script src="config.js"></script><script src="admin.js?v=13" type="module"></script>
+<script src="config.js"></script><script src="admin.js?v=14" type="module"></script>
 </body></html>

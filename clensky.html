@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173d37"><meta name="description" content="Súkromné a verejné stretnutia pre schválených členov Kresťanského zboru Trenčín.">
   <title>Interný kalendár | Kresťanský zbor Trenčín</title>
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body class="compact-public" data-calendar-mode="members">
   <header class="site-header"><div class="shell topbar">
@@ -17,9 +17,28 @@
       <span class="eyebrow">SÚKROMNÁ ČASŤ KALENDÁRA</span>
       <h1 id="member-title">Interný kalendár</h1>
       <p>Verejné aj interné udalosti. Prístup je iba pre účty schválené správcom zboru; prihlásenie neoprávňuje upravovať udalosti.</p>
+      <div class="member-auth-tabs" role="group" aria-label="Prihlásenie alebo registrácia">
+        <button type="button" id="member-tab-login" class="member-auth-tab active" aria-pressed="true">Prihlásenie</button>
+        <button type="button" id="member-tab-register" class="member-auth-tab" aria-pressed="false">Nová registrácia</button>
+      </div>
       <form id="member-login-form"><div class="input-group"><label for="member-email">E-mail</label><input id="member-email" type="email" autocomplete="username" required></div><div class="input-group"><label for="member-password">Heslo</label><input id="member-password" type="password" autocomplete="current-password" required></div><p id="member-login-error" class="form-error" role="alert"></p><button class="primary-button" id="member-login-button" type="submit">Prihlásiť sa →</button></form>
-      <div class="member-existing-session" id="member-session-message" hidden></div>
-      <p class="helper-note">Nemáte účet? Obráťte sa na správcu zborového kalendára.</p>
+      <form id="member-register-form" hidden>
+        <div class="input-group"><label for="member-register-name">Meno a priezvisko</label><input id="member-register-name" type="text" maxlength="100" autocomplete="name" required></div>
+        <div class="input-group"><label for="member-register-email">E-mail</label><input id="member-register-email" type="email" autocomplete="email" required></div>
+        <div class="input-group"><label for="member-register-password">Heslo (aspoň 8 znakov)</label><input id="member-register-password" type="password" autocomplete="new-password" minlength="8" required></div>
+        <p class="helper-note">Po registrácii potvrďte svoj e-mail. Prístup k interným akciám získate až po schválení správcom.</p>
+        <p class="form-error" id="member-register-error" role="alert"></p>
+        <button class="primary-button" id="member-register-button" type="submit">Zaregistrovať sa</button>
+      </form>
+      <section class="member-approval-state" id="member-approval-state" hidden aria-live="polite">
+        <h2 id="member-approval-title">Žiadosť o prístup</h2>
+        <p id="member-approval-description"></p>
+        <div id="member-request-name-wrap" class="input-group" hidden><label for="member-request-name">Meno a priezvisko</label><input id="member-request-name" maxlength="100" autocomplete="name"></div>
+        <p id="member-request-error" class="form-error" role="alert"></p>
+        <button class="primary-button" type="button" id="member-request-button" hidden>Odoslať žiadosť o schválenie</button>
+        <button class="ghost-button" type="button" id="member-pending-logout">Odhlásiť sa</button>
+      </section>
+      <p class="helper-note" id="member-auth-help">Nemáte účet? Vyberte „Nová registrácia“. Pre prístup je potrebné schválenie.</p>
     </div>
   </section>
   <main id="member-content" hidden>
@@ -52,6 +71,6 @@
       <p class="subscribe-note">Odber obsahuje IBA verejné akcie a nedeľné bohoslužby o 10:00; súkromné udalosti sa nikdy neexportujú. Obnovovanie zmien závisí od Google alebo Apple Kalendára.</p>
     </div>
   </div>
-  <script src="config.js"></script><script type="module" src="public.js?v=13"></script>
+  <script src="config.js"></script><script type="module" src="public.js?v=14"></script>
 </body>
 </html>
