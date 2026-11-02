@@ -167,7 +167,7 @@ $('#download-ics').addEventListener('click',()=>{
 
 
 
-// Interný kalendár: registrácia -> overenie e-mailu -> žiadosť -> schválenie.
+// Interný kalendár: registrácia (bez potvrdzovacieho e-mailu) -> automatická žiadosť -> schválenie.
 // Prihlásenie samo osebe NEDÁVA oprávnenie na interné udalosti. O tom rozhoduje RLS.
 async function memberPermission(client,user){
   if(!user)return false;
@@ -191,6 +191,9 @@ function chooseAuthTab(tab){
   }
   $('#member-login-error').textContent='';
   $('#member-register-error').textContent='';
+  $('#member-auth-help').textContent=register
+    ?'Už máte účet? Vyberte „Prihlásenie“.'
+    :'Nemáte účet? Vyberte „Nová registrácia“. Prístup sa aktivuje až po schválení.';
 }
 function memberGate(message=''){
   $('#member-gate').hidden=false;
@@ -217,7 +220,7 @@ async function presentApplicationStatus(client,user){
   const title=pending?'Žiadosť čaká na schválenie':rejected?'Žiadosť bola zamietnutá':revoked?'Prístup bol odobratý':suspended?'Prístup je pozastavený':'Požiadať o prístup';
   $('#member-approval-title').textContent=title;
   $('#member-approval-description').textContent=pending
-    ?'E-mail je overený a žiadosť bola prijatá. Keď správca schváli prístup, po opätovnom otvorení stránky uvidíte interné udalosti.'
+    ?'Žiadosť bola prijatá. Keď správca schváli váš účet, po opätovnom otvorení stránky uvidíte interné udalosti. Nie je potrebné čakať na potvrdzovací e-mail.'
     :rejected?'Vašu žiadosť správca zamietol. Obráťte sa na vedenie zboru.'
     :revoked?'Prístup do interného kalendára vám bol odobratý. Obráťte sa na správcu.'
     :suspended?'Váš prístup je momentálne neaktívny. Obráťte sa na správcu.'
@@ -264,20 +267,37 @@ if(memberMode){
       if(!configured)throw Error('Supabase nie je nastavený.');
       const client=await getClient();
       const email=$('#member-register-email').value.trim();
-      const full_name=$('#member-register-name').value.trim();
-      if(full_name.length<2||full_name.length>100)throw Error('Zadajte celé meno.');
-      const redirect=new URL('clensky.html',window.location.href).href;
+      const first_name=$('#member-register-first-name').value.trim().replace(/\s+/g,' ');
+      const last_name=$('#member-register-last-name').value.trim().replace(/\s+/g,' ');
+      const full_name=`${first_name} ${last_name}`;
+      if(!first_name||!last_name||full_name.length>100)throw Error('Zadajte meno aj priezvisko (spolu najviac 100 znakov).');
       const {data,error}=await client.auth.signUp({email,password:$('#member-register-password').value,options:{
-        emailRedirectTo:redirect,data:{full_name,calendar_registration:true}
+        data:{first_name,last_name,full_name,calendar_registration:true}
       }});
       if(error)throw error;
       $('#member-register-password').value='';
-      if(data.session){await memberSignedIn(client);}
-      else {
+      // Pri vypnutom Confirm email má Supabase ihneď vrátiť prihlásenú reláciu.
+      if(!data?.session){
         chooseAuthTab('login');
-        $('#member-login-error').textContent='Ak je registrácia prijatá, na e-mail príde potvrdzovací odkaz. Po potvrdení sa prihláste a odošlite žiadosť o prístup.';
+        $('#member-login-error').textContent='Účet sa nepodarilo automaticky prihlásiť. V Supabase skontrolujte, či je vypnuté Confirm email, potom sa skúste prihlásiť.';
+        return;
       }
-    }catch(error){console.error('Registrácia:',error);$('#member-register-error').textContent=error?.message||'Registrácia sa nepodarila.';}
+      // Odošleme žiadosť okamžite – človek už nemusí zvlášť klikať na ďalšie tlačidlo.
+      const {error:requestError}=await client.rpc('request_calendar_membership',{p_display_name:full_name});
+      if(requestError){
+        console.error('Automatické odoslanie žiadosti:',requestError);
+        const {data:{user}}=await client.auth.getUser();
+        if(user){
+          await presentApplicationStatus(client,user);
+          $('#member-request-error').textContent='Účet bol vytvorený, ale žiadosť sa neodoslala automaticky: '+(requestError.message||'Neznáma chyba')+'. Skúste ju odoslať tlačidlom nižšie.';
+        }else{
+          chooseAuthTab('login');
+          $('#member-login-error').textContent='Účet bol vytvorený, ale žiadosť sa nepodarilo odoslať. Skúste sa znova prihlásiť.';
+        }
+        return;
+      }
+      await memberSignedIn(client);
+    }catch(error){console.error('Registrácia:',error);$('#member-register-error').textContent=error?.code==='user_already_exists'||/already registered|already exists/i.test(error?.message||'')?'Tento e-mail už má účet. Použite Prihlásenie.':error?.message||'Registrácia sa nepodarila.';}
     finally{button.disabled=false;}
   });
   $('#member-request-button').addEventListener('click',async()=>{
