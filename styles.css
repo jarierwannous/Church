@@ -300,3 +300,9 @@
 .application-actions {display:flex;gap:8px;flex-wrap:wrap}
 .application-actions button {white-space:nowrap}
 @media(max-width:650px){.application-row{align-items:stretch;flex-direction:column}.application-actions button{flex:1}.member-approval-state .ghost-button{margin-left:0;margin-top:8px}}
+
+/* Verzia 15: oddelené meno/priezvisko, pohodlné na mobile. */
+.member-name-fields {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.member-name-fields .input-group {min-width:0}
+.member-name-fields input {width:100%;box-sizing:border-box}
+@media(max-width:480px){.member-name-fields{grid-template-columns:minmax(0,1fr);gap:0}}
