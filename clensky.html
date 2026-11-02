@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#173d37"><meta name="description" content="Súkromné a verejné stretnutia pre schválených členov Kresťanského zboru Trenčín.">
-  <title>Členský kalendár | Kresťanský zbor Trenčín</title>
+  <title>Interný kalendár | Kresťanský zbor Trenčín</title>
   <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body class="compact-public" data-calendar-mode="members">
   <header class="site-header"><div class="shell topbar">
     <a class="brand" href="https://kztn.sk/" aria-label="Hlavná stránka Kresťanského zboru Trenčín"><img class="brand-logo" src="logo.svg" alt="Kresťanský zbor Trenčín" width="408" height="74"></a>
-    <nav class="topnav" aria-label="Hlavná navigácia"><a href="index.html">Verejný kalendár</a><a href="#najblizsie">Najbližšie udalosti</a><button type="button" id="open-subscribe" class="nav-subscribe"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M12 13v6M9 16h6"/></svg> Odber verejného kalendára</button><a class="nav-member nav-active" href="#kalendar">Členský kalendár</a></nav>
+    <nav class="topnav" aria-label="Hlavná navigácia"><a href="index.html">Verejný kalendár</a><a href="#najblizsie">Najbližšie udalosti</a><button type="button" id="open-subscribe" class="nav-subscribe"><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M12 13v6M9 16h6"/></svg> Odber verejného kalendára</button><a class="nav-member nav-active" href="#kalendar">Interný kalendár</a></nav>
   </div></header>
   <div id="demo-banner" class="demo-banner" hidden><div class="shell"><strong>Ukážkový režim</strong> — zobrazené údaje sú vymyslené na prezentáciu stránky. Pre reálne údaje pripojte Supabase.</div></div>
   <section class="member-login-section shell" id="member-gate" aria-labelledby="member-title">
     <div class="member-login-card">
       <span class="eyebrow">SÚKROMNÁ ČASŤ KALENDÁRA</span>
-      <h1 id="member-title">Kalendár pre členov</h1>
+      <h1 id="member-title">Interný kalendár</h1>
       <p>Verejné aj interné udalosti. Prístup je iba pre účty schválené správcom zboru; prihlásenie neoprávňuje upravovať udalosti.</p>
       <form id="member-login-form"><div class="input-group"><label for="member-email">E-mail</label><input id="member-email" type="email" autocomplete="username" required></div><div class="input-group"><label for="member-password">Heslo</label><input id="member-password" type="password" autocomplete="current-password" required></div><p id="member-login-error" class="form-error" role="alert"></p><button class="primary-button" id="member-login-button" type="submit">Prihlásiť sa →</button></form>
       <div class="member-existing-session" id="member-session-message" hidden></div>
@@ -29,13 +29,13 @@
         <button type="button" id="hero-highlight" class="service-quickbar-detail" aria-live="polite" disabled>Načítavam…</button>
       </div>
     </section>
-    <section class="main-section shell"><aside class="upcoming-panel" id="najblizsie"><div class="aside-header"><div><span class="eyebrow">ČO NÁS ČAKÁ</span><h3>Najbližšie udalosti</h3></div><span class="tiny-spark" aria-hidden="true">✳</span></div><div id="upcoming-list" class="upcoming-list"><p class="muted">Načítavam…</p></div></aside><div class="section-intro" id="kalendar"><div><h1 class="calendar-page-title">Členský kalendár</h1><div class="member-inline-status"><span>Interné aj verejné udalosti</span><button type="button" id="member-logout">Odhlásiť sa</button></div><p>Vyberte dátum a pozrite si podrobnosti stretnutí.</p></div><div class="legend"><span><i class="legend-dot service"></i> Bohoslužba</span><span><i class="legend-dot general"></i> Ostatná akcia</span><span><i class="legend-dot member"></i> Interná akcia</span></div></div>
+    <section class="main-section shell"><aside class="upcoming-panel" id="najblizsie"><div class="aside-header"><div><span class="eyebrow">ČO NÁS ČAKÁ</span><h3>Najbližšie udalosti</h3></div><span class="tiny-spark" aria-hidden="true">✳</span></div><div id="upcoming-list" class="upcoming-list"><p class="muted">Načítavam…</p></div></aside><div class="section-intro" id="kalendar"><div><h1 class="calendar-page-title">Interný kalendár</h1><div class="member-inline-status"><span>Interné aj verejné udalosti</span><button type="button" id="member-logout">Odhlásiť sa</button></div><p>Vyberte dátum a pozrite si podrobnosti stretnutí.</p></div><div class="legend"><span><i class="legend-dot service"></i> Bohoslužba</span><span><i class="legend-dot general"></i> Ostatná akcia</span><span><i class="legend-dot member"></i> Interná akcia</span></div></div>
       <div class="calendar-toolbar"><div class="month-control"><button class="icon-button" id="prev-month" aria-label="Predchádzajúci mesiac"><span aria-hidden="true">‹</span></button><h3 id="month-title">&nbsp;</h3><button class="icon-button" id="next-month" aria-label="Nasledujúci mesiac"><span aria-hidden="true">›</span></button><button class="today-btn" id="today-btn">Dnes</button></div><div class="filters"><div class="filter-tabs" role="group" aria-label="Filtrovať udalosti"><button class="tab active" data-filter="all" aria-pressed="true">Všetko</button><button class="tab" data-filter="service" aria-pressed="false">Bohoslužby</button><button class="tab" data-filter="general" aria-pressed="false">Akcie</button><button class="tab" data-filter="members" aria-pressed="false">Len interné</button></div><label class="search-wrap"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5"/></svg><input id="event-search" type="search" placeholder="Hľadať udalosť" aria-label="Hľadať udalosť"></label></div></div>
       <div class="calendar-card"><div class="calendar-head" aria-hidden="true"><span>PO</span><span>UT</span><span>ST</span><span>ŠT</span><span>PI</span><span>SO</span><span>NE</span></div><div class="calendar-grid" id="calendar-grid" aria-label="Kalendár udalostí"></div><div class="calendar-footer"><span id="month-count">&nbsp;</span><span>Vyberte udalosť pre viac informácií</span></div></div>
       
     </section>
   </main>
-  <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><span>Členská časť – iba pre oprávnené účty</span></div></footer>
+  <footer class="site-footer"><div class="shell foot"><span>© <span id="year"></span> Kresťanský zbor Trenčín</span><span>Interná časť – iba pre oprávnené účty</span></div></footer>
   <div class="modal-overlay" id="event-modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" id="modal-close" aria-label="Zavrieť detail">×</button><div id="modal-inner"></div></div></div>
   <div class="modal-overlay" id="subscribe-modal" hidden>
     <div class="modal subscribe-dialog" role="dialog" aria-modal="true" aria-labelledby="subscribe-title">

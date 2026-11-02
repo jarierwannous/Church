@@ -167,7 +167,7 @@ $('#download-ics').addEventListener('click',()=>{
 
 
 
-// Členský kalendár: schválený člen má len právo čítať publikované interné záznamy.
+// Interný kalendár: schválený člen má len právo čítať publikované interné záznamy.
 // Skutočnú ochranu zaručuje RLS. Tento formulár nie je náhradou databázových pravidiel.
 async function memberPermission(client,user){
   if(!user)return false;
@@ -188,16 +188,16 @@ async function memberSignedIn(client){
   if(error||!user){memberGate();return;}
   if(!await memberPermission(client,user)){
     await client.auth.signOut();
-    memberGate('Tento účet zatiaľ nemá povolený prístup k členskému kalendáru. Obráťte sa na správcu.');return;
+    memberGate('Tento účet zatiaľ nemá povolený prístup k internému kalendáru. Obráťte sa na správcu.');return;
   }
   $('#member-gate').hidden=true;
   $('#member-content').hidden=false;
   await load();
 }
 async function initializeMemberPage(){
-  if(!configured){memberGate('Pre členský kalendár je potrebné pripojenie k Supabase.');return;}
+  if(!configured){memberGate('Pre interný kalendár je potrebné pripojenie k Supabase.');return;}
   try{await memberSignedIn(await getClient());}
-  catch(error){console.error('Členský kalendár:',error);memberGate('Nepodarilo sa overiť prístup. Skontrolujte SQL migráciu v7.');}
+  catch(error){console.error('Interný kalendár:',error);memberGate('Nepodarilo sa overiť prístup. Skontrolujte SQL migráciu v7.');}
 }
 if(memberMode){
   $('#member-login-form').addEventListener('submit',async event=>{
